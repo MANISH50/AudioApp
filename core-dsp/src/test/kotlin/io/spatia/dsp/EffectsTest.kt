@@ -36,7 +36,7 @@ class EffectsTest {
         cf.process(mono, 9600)
         // Low-passed, delayed feed is not perfectly in phase, so allow < 1 dB of mono level change.
         val ratio = TestSignals.rms(mono, 9600, 19200) / (0.5 / kotlin.math.sqrt(2.0))
-        assertTrue("ratio \$ratio", ratio in 0.89..1.0)
+        assertTrue("ratio $ratio", ratio in 0.89..1.0)
 
         val cf2 = Crossfeed(48000).apply { amount = 1f }
         val left = TestSignals.sineStereo(200.0, 48000, 9600, 0.5f).also { for (i in 1 until it.size step 2) it[i] = 0f }
