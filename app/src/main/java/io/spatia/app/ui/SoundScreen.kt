@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -113,7 +114,7 @@ fun SoundScreen(vm: MainViewModel, modifier: Modifier = Modifier) {
             Text(stringResource(R.string.correction_help), style = MaterialTheme.typography.bodySmall)
             SwitchRow(stringResource(R.string.correction_enable), s.correctionEnabled, enabled = s.correction.isNotEmpty(),
                 supporting = if (s.correction.isEmpty()) stringResource(R.string.correction_none)
-                else stringResource(R.string.correction_loaded, s.correction.size, s.correctionPreampDb)) { v ->
+                else pluralStringResource(R.plurals.correction_loaded, s.correction.size, s.correction.size, s.correctionPreampDb)) { v ->
                 vm.edit { it.copy(correctionEnabled = v) }
             }
             OutlinedButton(onClick = { corrPicker.launch(arrayOf("text/plain", "application/octet-stream")) }) {

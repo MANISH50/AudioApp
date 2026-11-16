@@ -46,6 +46,7 @@ data class PlayerUi(
 data class MeterUi(val peakDb: Float = -120f, val rmsDb: Float = -120f, val spectrum: FloatArray = FloatArray(0),
                    val limiterDb: Float = 0f)
 
+@androidx.annotation.OptIn(markerClass = [androidx.media3.common.util.UnstableApi::class])
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as SpatiaApp
     val config = app.engine.config

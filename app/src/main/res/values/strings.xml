@@ -94,7 +94,10 @@
     <string name="correction_help">Import a parametric EQ file (AutoEq or EqualizerAPO text format) to correct your headphones\' frequency response. The file is read once and stays on your device.</string>
     <string name="correction_enable">Apply correction</string>
     <string name="correction_none">No correction loaded</string>
-    <string name="correction_loaded">%1$d filters, preamp %2$.1f dB</string>
+    <plurals name="correction_loaded">
+        <item quantity="one">%1$d filter, preamp %2$.1f dB</item>
+        <item quantity="other">%1$d filters, preamp %2$.1f dB</item>
+    </plurals>
     <string name="correction_import">Import EQ file</string>
 
     <string name="ir_title">Room impulse response</string>

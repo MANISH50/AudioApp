@@ -27,6 +27,7 @@ data class Capability(
 class DeviceCapabilities(private val context: Context) {
     private val app get() = context.applicationContext as SpatiaApp
 
+    @android.annotation.SuppressLint("InlinedApi") // POST_NOTIFICATIONS is only checked on API 33+
     fun query(): List<Capability> = buildList {
         val api = Build.VERSION.SDK_INT
         add(Capability(R.string.cap_android, CapStatus.AVAILABLE, R.string.cap_android_reason, listOf(Build.VERSION.RELEASE, api)))
