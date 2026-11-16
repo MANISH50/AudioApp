@@ -13,5 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Spatia"
-include(":core-dsp")
-// APP_MODULE_PLACEHOLDER
+include(":core-dsp", ":app")

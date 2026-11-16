@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- All user-visible text lives here. To localise, copy to values-<lang>/strings.xml and translate. -->
+<resources>
+    <string name="app_name" translatable="false">Spatia</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Tabs -->
+    <string name="tab_player">Player</string>
+    <string name="tab_sound">Sound</string>
+    <string name="tab_output">Output</string>
+    <string name="tab_apps">Apps</string>
+    <string name="tab_status">Status</string>
+
+    <!-- Player -->
+    <string name="player_title">Now playing</string>
+    <string name="player_nothing">Nothing loaded</string>
+    <string name="player_open">Open file</string>
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_position">Playback position</string>
+    <string name="player_untitled">Untitled</string>
+    <string name="player_formats">Plays FLAC, Opus, AAC, MP3 and WAV. IAMF plays only inside MP4, and only where the device has an IAMF decoder.</string>
+    <string name="player_cannot_play">This file can\'t be played</string>
+    <string name="format_iamf_raw">This is a raw .iamf stream. Spatia can play IAMF only when it is packaged in an MP4 file.</string>
+    <string name="format_iamf_no_decoder">This file contains IAMF immersive audio, but this device has no IAMF decoder. IAMF decoding is built into some devices running Android 16 or later.</string>
+    <string name="format_known_unsupported">This format isn\'t supported. Supported formats: FLAC, Opus, AAC, MP3, WAV and IAMF in MP4.</string>
+    <string name="format_not_audio">This doesn\'t look like an audio file.</string>
+    <string name="format_unknown">Unrecognised file type. Supported formats: FLAC, Opus, AAC, MP3, WAV and IAMF in MP4.</string>
+    <string name="error_decoder">This device has no decoder for the audio in this file.</string>
+    <string name="error_container">The file is damaged or uses a container Spatia can\'t read.</string>
+    <string name="error_file_access">Spatia can\'t open the file anymore. Pick it again.</string>
+    <string name="error_generic">Playback failed.</string>
+
+    <string name="compare_title">A/B compare</string>
+    <string name="compare_bypass">Bypass processing</string>
+    <string name="compare_bypass_help">Hear the original at matched loudness, so louder doesn\'t just sound better.</string>
+    <string name="meters_title">Meters</string>
+    <string name="meter_peak">Peak</string>
+    <string name="meter_rms">RMS</string>
+    <string name="meter_spectrum">Live frequency spectrum</string>
+    <string name="sleep_title">Sleep timer</string>
+    <string name="sleep_off">Off</string>
+    <string name="sleep_minutes">%1$d min</string>
+    <string name="sleep_remaining">Fades out and pauses in %1$s</string>
+
+    <!-- Sound -->
+    <string name="modes_title">Mode</string>
+    <string name="modes_for_output">Saved separately for each output. Now editing: %1$s</string>
+    <string name="mode_music">Music</string>
+    <string name="mode_movie">Movie</string>
+    <string name="mode_gaming">Gaming</string>
+    <string name="mode_voice">Podcast / Voice</string>
+    <string name="mode_night">Night</string>
+    <string name="mode_custom">Custom</string>
+
+    <string name="spatial_title">Spatial 3D</string>
+    <string name="spatial_enable">Spatial audio</string>
+    <string name="spatial_help">Puts virtual speakers around your head using a head-shadow model. Works best with headphones. Applies to the built-in player only.</string>
+    <string name="spatial_width">Width</string>
+    <string name="spatial_room">Room size</string>
+    <string name="spatial_upmix">Surround upmix</string>
+    <string name="spatial_upmix_help">Turns stereo into virtual 5.0: centre plus rear ambience.</string>
+    <string name="spatial_head_tracking">Head tracking</string>
+    <string name="head_tracking_help">Keeps the sound fixed in the room as you turn your head.</string>
+    <string name="head_tracking_needs_13">Needs Android 13 or later.</string>
+    <string name="head_tracking_needs_headphones">Needs headphones.</string>
+    <string name="head_tracking_no_sensor">No head-tracking sensor found. Connect headphones that support head tracking.</string>
+    <string name="head_recenter">Recenter</string>
+
+    <string name="eq_title">10-band equaliser</string>
+    <string name="eq_band">%1$s</string>
+    <string name="eq_reset">Reset EQ</string>
+
+    <string name="tone_title">Tone and dynamics</string>
+    <string name="tone_bass">Bass</string>
+    <string name="tone_treble">Treble</string>
+    <string name="tone_preamp">Preamp</string>
+    <string name="tone_voice">Voice clarity</string>
+    <string name="tone_normalize">Loudness normalisation</string>
+    <string name="tone_normalize_help">Evens out level differences between tracks. Uses ReplayGain tags when the file has them.</string>
+    <string name="tone_night">Night compression</string>
+    <string name="tone_night_help">Quiet parts get louder and loud parts quieter, for low-volume listening.</string>
+    <string name="tone_loudness_comp">Equal-loudness compensation</string>
+    <string name="tone_loudness_comp_help">Restores bass and treble at low volume, following the ear\'s equal-loudness curves.</string>
+
+    <string name="extras_title">Output-specific</string>
+    <string name="extras_crossfeed">Headphone crossfeed</string>
+    <string name="extras_crossfeed_help">Blends a little of each channel into the other ear, like speakers in a room, to ease fatigue from hard-panned mixes. Headphones only, with spatial audio off.</string>
+    <string name="extras_psycho_bass">Psychoacoustic bass</string>
+    <string name="extras_psycho_bass_help">Phone speaker only. Adds harmonics so you hear deep bass the speaker can\'t physically play, without overdriving it.</string>
+
+    <string name="correction_title">Headphone correction</string>
+    <string name="correction_help">Import a parametric EQ file (AutoEq or EqualizerAPO text format) to correct your headphones\' frequency response. The file is read once and stays on your device.</string>
+    <string name="correction_enable">Apply correction</string>
+    <string name="correction_none">No correction loaded</string>
+    <string name="correction_loaded">%1$d filters, preamp %2$.1f dB</string>
+    <string name="correction_import">Import EQ file</string>
+
+    <string name="ir_title">Room impulse response</string>
+    <string name="ir_help">Load a WAV impulse response (up to 2 s, mono or stereo) to place the music in a real room. It\'s held in memory only.</string>
+    <string name="ir_enable">Use room</string>
+    <string name="ir_mix">Room mix</string>
+    <string name="ir_import">Load WAV</string>
+    <string name="ir_clear">Remove</string>
+
+    <string name="hearing_title">Personal hearing profile</string>
+    <string name="hearing_help">A short listening check builds a gentle compensation curve (at most +6 dB). It isn\'t a medical test, and the results stay on this device.</string>
+    <string name="hearing_enable">Apply my hearing profile</string>
+    <string name="hearing_start">Start listening check</string>
+    <string name="hearing_needs_headphones">Connect headphones to start</string>
+    <string name="hearing_instructions">Sit somewhere quiet and set your volume to a comfortable middle level. Don\'t change it during the check. You\'ll hear quiet tones in one ear at a time. Tap \"Heard it\" as soon as you can hear the tone.</string>
+    <string name="hearing_begin">Begin</string>
+    <string name="hearing_left">Left ear, %1$d Hz</string>
+    <string name="hearing_right">Right ear, %1$d Hz</string>
+    <string name="hearing_level">Tone level: %1$d dBFS</string>
+    <string name="hearing_heard">Heard it</string>
+    <string name="hearing_not_heard">Not yet, louder</string>
+    <string name="hearing_replay">Replay tone</string>
+
+    <string name="access_title">Accessibility</string>
+    <string name="access_mono">Mono audio</string>
+    <string name="access_balance">Left/right balance</string>
+
+    <!-- Output -->
+    <string name="output_speaker">Phone speaker</string>
+    <string name="output_wired">Wired headphones</string>
+    <string name="output_bluetooth">Bluetooth</string>
+    <string name="output_usb">USB audio</string>
+    <string name="output_hdmi">HDMI / cast</string>
+    <string name="output_active">Active output</string>
+    <string name="output_auto">Detected automatically</string>
+    <string name="output_manual">Set manually</string>
+    <string name="output_safety">Safety for this output: at most %1$.0f dB boost, limiter ceiling %2$.0f dBFS, volume warning above %3$d%%.</string>
+    <string name="output_volume">Media volume %1$d%% (%2$.0f dB below maximum)</string>
+    <string name="output_override">Output profile</string>
+    <string name="output_auto_detect">Auto-detect</string>
+    <string name="output_remember">Remember settings per device</string>
+    <string name="output_remember_help">Each pair of headphones keeps its own settings. Devices are recognised by type and model name, never by hardware address.</string>
+    <string name="bit_perfect_title">Bit-perfect USB</string>
+    <string name="bit_perfect_enable">Bit-perfect output</string>
+    <string name="bit_perfect_help">Sends audio to your USB DAC unchanged. All Spatia processing (EQ, spatial, limiter) is bypassed while this is on, so use the DAC\'s own volume carefully.</string>
+    <string name="dose_title">Listening dose</string>
+    <string name="dose_enable">Track weekly listening dose</string>
+    <string name="dose_help">Estimates headphone exposure against the WHO safe-listening guideline (80 dB for 40 hours a week). It\'s an estimate from the volume setting, not a measurement, and it stays on this device.</string>
+    <string name="dose_value">This week: %1$d%% of the safe weekly dose</string>
+
+    <string name="volume_warning_title">High volume</string>
+    <string name="volume_warning_headphones">Listening at high volume through headphones for long periods can permanently damage your hearing.</string>
+    <string name="volume_warning_speaker">The volume is very high. Long exposure at this level can harm your hearing.</string>
+    <string name="volume_reduce">Lower volume</string>
+    <string name="volume_continue">I understand</string>
+
+    <!-- Apps / system-wide -->
+    <string name="system_title">Other apps</string>
+    <string name="system_explain">Spatia can enhance other apps only when they announce their audio session to equaliser apps. Many music players do. Most streaming, video, game and call apps don\'t, and Android offers no documented way to process them.</string>
+    <string name="system_enable">Enhance other apps</string>
+    <string name="system_limits">Available here: EQ, bass and treble, voice clarity, loudness compensation, headphone correction, night compression, per-app boost and limiter. Spatial 3D, head tracking, crossfeed and room effects work in the built-in player only.</string>
+    <string name="system_sessions">Active app sessions</string>
+    <string name="system_no_sessions">No app has announced an audio session yet. Start playback in a supported app.</string>
+    <string name="session_dp">Enhanced with EQ, dynamics and limiter</string>
+    <string name="session_eq">Basic equaliser only. Boost is disabled because this device has no limiter effect.</string>
+    <string name="session_failed">Couldn\'t attach. The app or device refused the effect.</string>
+    <string name="session_boost">Boost for %1$s</string>
+    <string name="session_boost_cap">Boost is limited to %1$.0f dB for this output and always runs through the limiter.</string>
+
+    <string name="notif_channel_system">System-wide enhancement</string>
+    <string name="notif_system_title">Spatia is enhancing other apps</string>
+    <string name="notif_system_text">Applies to apps that announce their audio session.</string>
+
+    <!-- Status -->
+    <string name="status_title">Device status</string>
+    <string name="status_output">Current output: %1$s</string>
+    <string name="status_refresh">Refresh</string>
+    <string name="status_available">Available</string>
+    <string name="status_limited">Limited</string>
+    <string name="status_unavailable">Unavailable</string>
+    <string name="cap_android">Android version</string>
+    <string name="cap_android_reason">Android %1$s (API %2$d)</string>
+    <string name="cap_player_dsp">Built-in player processing</string>
+    <string name="cap_player_dsp_reason">Every sound feature works on all supported Android versions.</string>
+    <string name="cap_spatializer">Android Spatializer</string>
+    <string name="cap_spatializer_os">Needs Android 12L or later.</string>
+    <string name="cap_spatializer_device">This device or output doesn\'t offer the platform spatializer. Spatia\'s own spatial audio still works.</string>
+    <string name="cap_spatializer_off">Available but turned off in system settings.</string>
+    <string name="cap_spatializer_on">Available and on for supported multichannel content.</string>
+    <string name="cap_spatial_app">Spatia spatial 3D</string>
+    <string name="cap_spatial_app_reason">Available in the built-in player on every device.</string>
+    <string name="cap_head_tracking">Head tracking</string>
+    <string name="cap_head_tracking_os">Needs Android 13 or later.</string>
+    <string name="cap_head_tracking_ok">A head-tracking sensor is connected.</string>
+    <string name="cap_head_tracking_no_sensor">No head-tracking headset connected.</string>
+    <string name="cap_system_wide">Enhancing other apps</string>
+    <string name="cap_system_wide_dp">Works for apps that announce their audio session. Uses DynamicsProcessing.</string>
+    <string name="cap_system_wide_eq">Works for apps that announce their audio session, with a basic EQ only. No boost, because there\'s no limiter.</string>
+    <string name="cap_system_wide_none">This device exposes no audio effects to apps.</string>
+    <string name="cap_system_spatial">Spatial 3D in other apps</string>
+    <string name="cap_system_spatial_reason">Not possible. Android doesn\'t let apps process other apps\' audio samples.</string>
+    <string name="cap_bit_perfect">Bit-perfect USB</string>
+    <string name="cap_bit_perfect_os">Needs Android 14 or later.</string>
+    <string name="cap_bit_perfect_no_usb">Connect a USB DAC.</string>
+    <string name="cap_bit_perfect_ok">The connected USB device supports bit-perfect playback.</string>
+    <string name="cap_bit_perfect_dac">The connected USB device doesn\'t support bit-perfect playback.</string>
+    <string name="cap_codec">%1$s decoding</string>
+    <string name="cap_codec_ok">%1$s decoder available.</string>
+    <string name="cap_codec_missing">No %1$s decoder on this device.</string>
+    <string name="cap_codec_wav">%1$s (PCM) is always supported.</string>
+    <string name="cap_iamf">IAMF immersive audio</string>
+    <string name="cap_iamf_ok">The platform has an IAMF decoder. IAMF in MP4 plays with the built-in player.</string>
+    <string name="cap_iamf_missing">No IAMF decoder on this device. Some devices add one with Android 16.</string>
+    <string name="cap_notifications">Notifications</string>
+    <string name="cap_notifications_ok">Allowed. The system-wide service notification will show.</string>
+    <string name="cap_notifications_denied">Denied. System-wide enhancement still works, but its notification is hidden.</string>
+
+    <!-- Messages -->
+    <string name="msg_file_too_large">File is too large.</string>
+    <string name="msg_correction_imported">Correction imported. Filters:</string>
+    <string name="msg_correction_failed">Couldn\'t import EQ file:</string>
+    <string name="msg_ir_imported">Room impulse response loaded.</string>
+    <string name="msg_ir_failed">Couldn\'t load impulse response:</string>
+    <string name="msg_bit_perfect_failed">The USB device refused bit-perfect mode.</string>
+    <string name="msg_restart_playback">Change applies from the next track.</string>
+</resources>
