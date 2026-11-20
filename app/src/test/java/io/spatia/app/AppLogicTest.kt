@@ -66,6 +66,26 @@ class AppLogicTest {
         assertEquals(AppState(), SettingsRepository.decode("x".repeat(600_000)))
     }
 
+    @Test fun settingsFromVersion010StillLoadWithEnvironmentDefaults() {
+        val old = """{"perType":{"WIRED":{"bassDb":4.0}}}"""
+        val s = SettingsRepository.decode(old).perType.getValue(OutputType.WIRED)
+        assertEquals(4f, s.bassDb)
+        assertEquals(io.spatia.dsp.model.Environment.OFF, s.environment)
+        assertEquals(0.5f, s.environmentIntensity)
+        // A future/unknown environment name falls back to OFF instead of wiping all settings.
+        val future = """{"perType":{"WIRED":{"bassDb":4.0,"environment":"SPACESHIP"}}}"""
+        val f = SettingsRepository.decode(future).perType.getValue(OutputType.WIRED)
+        assertEquals(4f, f.bassDb)
+        assertEquals(io.spatia.dsp.model.Environment.OFF, f.environment)
+    }
+
+    @Test fun intensityLabels() {
+        fun t(v: Float) = io.spatia.app.ui.intensityText(v, "Subtle", "Default", "Intense")
+        assertEquals("Default", t(0.5f))
+        assertEquals("Subtle −100%", t(0f))
+        assertEquals("Intense +50%", t(0.75f))
+    }
+
     @Test fun appStateValidationRejectsBadPackagesAndClampsBoost() {
         val s = AppState(appBoostDb = mapOf("com.ok.app" to 50f, "../../etc" to 3f, "bad pkg" to 1f)).validated()
         assertEquals(mapOf("com.ok.app" to 12f), s.appBoostDb)

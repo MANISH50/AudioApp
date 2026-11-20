@@ -39,6 +39,8 @@ data class SoundSettings(
     val convolutionEnabled: Boolean = false,
     val convolutionMix: Float = 0.3f,
     val bypass: Boolean = false,
+    val environment: Environment = Environment.OFF,
+    val environmentIntensity: Float = EnvironmentPreset.DEFAULT_INTENSITY,
 ) {
     fun validated(): SoundSettings = copy(
         eqGainsDb = List(EQ_BANDS.size) { i -> eqGainsDb.getOrElse(i) { 0f }.safeClamp(-12f, 12f, 0f) },
@@ -63,6 +65,7 @@ data class SoundSettings(
         hearingCompensation = if (hearingCompensation.size == HEARING_FREQS.size)
             hearingCompensation.map { it.safeClamp(0f, MAX_HEARING_BOOST_DB, 0f) } else emptyList(),
         convolutionMix = convolutionMix.safeClamp(0f, 1f, 0.3f),
+        environmentIntensity = environmentIntensity.safeClamp(0f, 1f, EnvironmentPreset.DEFAULT_INTENSITY),
     )
 
     companion object {

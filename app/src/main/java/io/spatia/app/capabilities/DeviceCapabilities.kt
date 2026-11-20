@@ -43,6 +43,7 @@ class DeviceCapabilities(private val context: Context) {
             },
         )
         add(Capability(R.string.cap_spatial_app, CapStatus.AVAILABLE, R.string.cap_spatial_app_reason))
+        add(Capability(R.string.cap_environment, CapStatus.LIMITED, R.string.cap_environment_reason))
 
         val ht = app.headTracker
         add(

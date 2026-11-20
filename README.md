@@ -22,6 +22,7 @@ Dependencies are pinned in `gradle/libs.versions.toml` and checked against SHA-2
 | IAMF (inside MP4 only) | ❌ | ❌ | ❌ | ❌ | ❌ | Only if the device ships an `audio/iamf` decoder (some Android 16 devices) |
 | Modes, 10-band EQ, bass, treble, voice clarity, loudness normalisation, night compression | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Spatial 3D (width, room size, surround upmix, 5.1/7.1 virtualisation) in the player | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Environments: Hall, Cinema, Park, Bathroom, Echoing, Cathedral, Stadium, Club, Living room, Tunnel, with an intensity meter | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Head tracking (own renderer) | ❌ | ❌ | ❌ | ✅ with a headset that exposes a head-tracker sensor | ✅ same | ✅ same |
 | Platform Spatializer status (read-only) | n/a | n/a | ✅ | ✅ | ✅ | ✅ |
 | Output detection + per-output/per-device profiles | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -30,9 +31,15 @@ Dependencies are pinned in `gradle/libs.versions.toml` and checked against SHA-2
 | Crossfeed, psychoacoustic bass, equal-loudness compensation, hearing profile, room IR convolution, A/B, meters, mono/balance, sleep timer | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Bit-perfect USB DAC output | ❌ | ❌ | ❌ | ❌ | ✅ if the DAC supports it | ✅ same |
 | Enhancing other apps (EQ, tone, correction, per-app boost, night, limiter) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
-| Spatial 3D / head tracking / crossfeed / room for other apps | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Spatial 3D / head tracking / crossfeed / environments / room for other apps | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ⚠️ **System-wide limits.** Spatia can only process apps that broadcast `ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION`. Many local music players do. Most streaming, video, game and call apps don't, and those can't be enhanced. Global session 0 is deprecated and isn't used. On devices without the DynamicsProcessing effect, Spatia falls back to the basic Equalizer with no boost, because there's no limiter. The system-wide service has to be started from the app; it doesn't start on boot, which avoids an extra permission.
+
+## Environments
+
+The Sound tab's **Environment** section places the music in a space. Each one is a parallel send effect: the original audio passes through unchanged at full level, and the room is added on top. The rooms use pre-delay, early reflections, an 8-line feedback delay network and, for some spaces, a ping-pong echo. The effect is band-limited so it never muddies the bass.
+
+The **intensity meter** has its centre at each space's designed sound. Moving it left makes the room subtler, and fully left turns it off. Moving it right makes it louder (up to +6 dB) and longer (up to 1.5× the decay time). Echo feedback is hard-capped so echoes always fade away. The limiter still protects the output.
 
 ## Known gaps
 

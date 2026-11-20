@@ -13,6 +13,7 @@ import io.spatia.dsp.model.OutputType
 import io.spatia.dsp.model.SoundSettings
 import io.spatia.dsp.spatial.BinauralRenderer
 import io.spatia.dsp.spatial.Crossfeed
+import io.spatia.dsp.spatial.EnvironmentReverb
 import io.spatia.dsp.spatial.Reverb
 import io.spatia.dsp.spatial.StereoTools
 import io.spatia.dsp.spatial.Upmixer
@@ -65,6 +66,7 @@ class DspChain(val sampleRate: Int, val inChannels: Int) {
     private val bass = BassEnhancer(sampleRate)
     private val reverb = Reverb(sampleRate)
     private val upmixer = Upmixer(sampleRate)
+    private val environment = EnvironmentReverb(sampleRate)
     private val speakerCount = if (inChannels > 2) inChannels else 5
     private val renderer = BinauralRenderer(speakerCount, sampleRate)
     private var convolver: Convolver? = null
@@ -154,6 +156,11 @@ class DspChain(val sampleRate: Int, val inChannels: Int) {
             val m = s.convolutionMix
             for (i in 0 until n * 2) work[i] = work[i] * (1 - m) + wet[i] * m
         }
+        // Acoustic environment: added on top of the original, which passes through untouched.
+        if (s.environment != io.spatia.dsp.model.Environment.OFF) {
+            environment.setIntensity(s.environmentIntensity)
+            environment.process(work, n)
+        }
         if (safety.isHeadphones && !s.spatialEnabled) { crossfeed.amount = s.crossfeed; crossfeed.process(work, n) }
         if (curOutput == OutputType.SPEAKER) { bass.amount = s.psychoBass; bass.process(work, n) }
         if (s.mono) StereoTools.mono(work, n)
@@ -210,6 +217,7 @@ class DspChain(val sampleRate: Int, val inChannels: Int) {
     private fun resetStateful() {
         filters.reset(); renderer.reset(); reverb.reset(); upmixer.reset(); crossfeed.reset(); bass.reset()
         compressor.reset()
+        environment.setPreset(cur.environment.preset, cur.environmentIntensity)
     }
 
     private fun toStereo(input: FloatArray, off: Int, out: FloatArray, n: Int) {

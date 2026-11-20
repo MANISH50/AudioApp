@@ -54,6 +54,38 @@
     <string name="mode_night">Night</string>
     <string name="mode_custom">Custom</string>
 
+    <!-- Environments -->
+    <string name="env_title">Environment</string>
+    <string name="env_help">Place the music in a space. The space is added on top, so the original sound is never reduced.</string>
+    <string name="env_intensity">Effect intensity</string>
+    <string name="env_subtle">Subtle</string>
+    <string name="env_default">Default</string>
+    <string name="env_intense">Intense</string>
+    <string name="env_reset">Reset to default</string>
+    <string name="env_player_only">Works in the built-in player. Android doesn\'t let apps add room effects to other apps\' audio.</string>
+    <string name="env_off">Off</string>
+    <string name="env_off_desc">No room effect.</string>
+    <string name="env_hall">Hall</string>
+    <string name="env_hall_desc">An empty concert hall: a short pause, then a long, warm echo from every wall.</string>
+    <string name="env_cinema">Cinema</string>
+    <string name="env_cinema_desc">An old single-screen theatre: a vintage, slightly muffled tail and a slap back from the rear wall.</string>
+    <string name="env_park">Park</string>
+    <string name="env_park_desc">Open air: almost no reverb, a few soft reflections from trees and one distant building.</string>
+    <string name="env_bathroom">Bathroom</string>
+    <string name="env_bathroom_desc">A small tiled room: bright, dense and close.</string>
+    <string name="env_echoing">Echoing</string>
+    <string name="env_echoing_desc">A canyon: clear echoes that bounce left and right, then fade.</string>
+    <string name="env_cathedral">Cathedral</string>
+    <string name="env_cathedral_desc">A huge stone space with a very long, dark tail.</string>
+    <string name="env_stadium">Stadium</string>
+    <string name="env_stadium_desc">An open arena: a big delayed slap and a wide, washing tail.</string>
+    <string name="env_club">Club</string>
+    <string name="env_club_desc">A small, lively room with a short punchy tail.</string>
+    <string name="env_living_room">Living room</string>
+    <string name="env_living_room_desc">A furnished room: a subtle, natural ambience.</string>
+    <string name="env_tunnel">Tunnel</string>
+    <string name="env_tunnel_desc">Hard parallel walls: a fast, ringing flutter echo.</string>
+
     <string name="spatial_title">Spatial 3D</string>
     <string name="spatial_enable">Spatial audio</string>
     <string name="spatial_help">Puts virtual speakers around your head using a head-shadow model. Works best with headphones. Applies to the built-in player only.</string>
@@ -158,7 +190,7 @@
     <string name="system_title">Other apps</string>
     <string name="system_explain">Spatia can enhance other apps only when they announce their audio session to equaliser apps. Many music players do. Most streaming, video, game and call apps don\'t, and Android offers no documented way to process them.</string>
     <string name="system_enable">Enhance other apps</string>
-    <string name="system_limits">Available here: EQ, bass and treble, voice clarity, loudness compensation, headphone correction, night compression, per-app boost and limiter. Spatial 3D, head tracking, crossfeed and room effects work in the built-in player only.</string>
+    <string name="system_limits">Available here: EQ, bass and treble, voice clarity, loudness compensation, headphone correction, night compression, per-app boost and limiter. Spatial 3D, head tracking, crossfeed, environments (Hall, Cinema and the rest) and room effects work in the built-in player only.</string>
     <string name="system_sessions">Active app sessions</string>
     <string name="system_no_sessions">No app has announced an audio session yet. Start playback in a supported app.</string>
     <string name="session_dp">Enhanced with EQ, dynamics and limiter</string>
@@ -189,6 +221,8 @@
     <string name="cap_spatializer_on">Available and on for supported multichannel content.</string>
     <string name="cap_spatial_app">Spatia spatial 3D</string>
     <string name="cap_spatial_app_reason">Available in the built-in player on every device.</string>
+    <string name="cap_environment">Environments (Hall, Cinema and more)</string>
+    <string name="cap_environment_reason">Available in the built-in player on every device. Not possible for other apps.</string>
     <string name="cap_head_tracking">Head tracking</string>
     <string name="cap_head_tracking_os">Needs Android 13 or later.</string>
     <string name="cap_head_tracking_ok">A head-tracking sensor is connected.</string>

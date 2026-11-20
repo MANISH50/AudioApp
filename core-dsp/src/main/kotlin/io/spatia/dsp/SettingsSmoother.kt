@@ -22,6 +22,7 @@ internal object SettingsSmoother {
             psychoBass = approach(cur.psychoBass, tgt.psychoBass, unitStep),
             balance = approach(cur.balance, tgt.balance, unitStep),
             convolutionMix = approach(cur.convolutionMix, tgt.convolutionMix, unitStep),
+            environmentIntensity = approach(cur.environmentIntensity, tgt.environmentIntensity, unitStep),
             correctionPreampDb = approach(cur.correctionPreampDb, tgt.correctionPreampDb, dbStep),
             correction = if (cur.correction.size == tgt.correction.size) cur.correction.zip(tgt.correction) { c, t ->
                 t.copy(gainDb = approach(c.gainDb, t.gainDb, dbStep))
@@ -37,7 +38,7 @@ internal object SettingsSmoother {
         s.spatialEnabled, s.surroundUpmix, s.nightCompression, s.loudnessNormalization, s.mono,
         s.correctionEnabled, s.correction.map { Triple(it.type, it.freqHz, it.q) },
         s.hearingEnabled, s.hearingCompensation.size, s.loudnessCompensation, s.convolutionEnabled,
-        s.voiceClarity > 0f, s.eqGainsDb.map { it != 0f }, s.bassDb != 0f, s.trebleDb != 0f,
+        s.environment, s.voiceClarity > 0f, s.eqGainsDb.map { it != 0f }, s.bassDb != 0f, s.trebleDb != 0f,
     )
 
     private fun approach(c: Float, t: Float, step: Float): Float =

@@ -55,6 +55,13 @@ fun SoundScreen(vm: MainViewModel, modifier: Modifier = Modifier) {
             }
         }
 
+        EnvironmentSection(
+            environment = s.environment,
+            intensity = s.environmentIntensity,
+            onEnvironment = { e -> vm.edit { it.copy(environment = e) } },
+            onIntensity = { v -> vm.edit { it.copy(environmentIntensity = v) } },
+        )
+
         Section(stringResource(R.string.spatial_title)) {
             SwitchRow(stringResource(R.string.spatial_enable), s.spatialEnabled,
                 supporting = stringResource(R.string.spatial_help)) { v -> vm.tweak { it.copy(spatialEnabled = v) } }

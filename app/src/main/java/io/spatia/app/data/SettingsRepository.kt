@@ -34,7 +34,8 @@ class SettingsRepository(private val context: Context, private val scope: Corout
     }
 
     companion object {
-        val JSON = Json { ignoreUnknownKeys = true; encodeDefaults = false }
+        // coerceInputValues: an unknown enum value (e.g. from a newer version) falls back to its default.
+        val JSON = Json { ignoreUnknownKeys = true; encodeDefaults = false; coerceInputValues = true }
         private const val MAX_JSON = 512 * 1024
 
         /** Corrupt or oversized data falls back to defaults rather than crashing the app. */
