@@ -16,7 +16,8 @@ public class AppLogTests
             AppLog.Error("page player", new InvalidOperationException("boom"));
             var text = File.ReadAllText(AppLog.FilePath);
             Assert.Contains("INFO  [startup] Spatia", text);
-            Assert.Contains("ERROR [page player] System.InvalidOperationException: boom", text);
+            Assert.Contains("ERROR [page player] HRESULT 0x", text);
+            Assert.Contains("System.InvalidOperationException: boom", text);
         }
         finally { if (Directory.Exists(dir)) Directory.Delete(dir, true); }
     }

@@ -50,7 +50,7 @@ The Kotlin/Native toolchain cross-compiles `spatia_dsp.dll` on Linux, which is h
 - `src/Spatia.Core`: interop with the engine (LibraryImport), settings models and storage, profile resolution, endpoint classification, format checks and strings.
 - `src/Spatia.Audio`: NAudio WASAPI output, Media Foundation decoding, the Concentus Opus decoder, device and volume monitoring, and the hearing-check tone player.
 - `src/Spatia.UI`: every page, the controller and UI helpers, built in C# (no .xaml files), so it compiles and is analysed on any OS.
-- `src/Spatia.App`: the small WinUI 3 exe (App.xaml, MainWindow.xaml) with standard startup, the icon and error reporting.
+- `src/Spatia.App`: the small WinUI 3 exe (App.xaml with standard startup, plus the window, icon and error reporting).
 - `assets/`: the app icon (`spatia-icon.svg`, rendered to `Spatia.ico` by `make-icon.py`).
 - `tests/ui/ui-smoke.ps1`: the end-to-end UI test CI runs on Windows.
 - `tests/Spatia.Core.Tests`: xUnit tests covering the engine through its C API, chain behaviour on the sample track, the logic, the settings store and string completeness.

@@ -22,7 +22,9 @@ public static class AppLog
 
     public static void Info(string stage, string message) => Write("INFO", stage, message);
     public static void Error(string stage, string message) => Write("ERROR", stage, message);
-    public static void Error(string stage, Exception ex) => Write("ERROR", stage, ex.ToString());
+    /// <summary>Logs the exception with its HRESULT and inner exceptions (WinRT errors often hide the cause there).</summary>
+    public static void Error(string stage, Exception ex) =>
+        Write("ERROR", stage, string.Create(CultureInfo.InvariantCulture, $"HRESULT 0x{ex.HResult:X8} {ex}"));
 
     private static void Write(string level, string stage, string message)
     {
