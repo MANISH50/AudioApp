@@ -10,6 +10,10 @@ Spatia is a spatial audio player and sound enhancer for Windows 10 (version 2004
 
 Prefer no installer? The same release has `Spatia-Windows-x64.zip`. Extract it and run `Spatia.exe`. Every CI run also attaches both files as workflow artifacts.
 
+## If Spatia doesn't start
+
+Spatia shows a message and writes `%LOCALAPPDATA%\Spatia\logs\spatia.log` when it can't start. The log contains versions and startup steps only, with no personal data. Please send that file with any report.
+
 ## Features
 
 | Feature | Status |
@@ -45,7 +49,10 @@ The Kotlin/Native toolchain cross-compiles `spatia_dsp.dll` on Linux, which is h
 
 - `src/Spatia.Core`: interop with the engine (LibraryImport), settings models and storage, profile resolution, endpoint classification, format checks and strings.
 - `src/Spatia.Audio`: NAudio WASAPI output, Media Foundation decoding, the Concentus Opus decoder, device and volume monitoring, and the hearing-check tone player.
-- `src/Spatia.App`: the WinUI 3 app. The UI is built in C# (no XAML files), so every page compiles and is checked on any OS.
+- `src/Spatia.UI`: every page, the controller and UI helpers, built in C# (no .xaml files), so it compiles and is analysed on any OS.
+- `src/Spatia.App`: the small WinUI 3 exe (App.xaml, MainWindow.xaml) with standard startup, the icon and error reporting.
+- `assets/`: the app icon (`spatia-icon.svg`, rendered to `Spatia.ico` by `make-icon.py`).
+- `tests/ui/ui-smoke.ps1`: the end-to-end UI test CI runs on Windows.
 - `tests/Spatia.Core.Tests`: xUnit tests covering the engine through its C API, chain behaviour on the sample track, the logic, the settings store and string completeness.
 
 ### Localisation

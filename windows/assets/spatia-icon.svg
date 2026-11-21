@@ -1,0 +1,10 @@
+<!-- Spatia app icon (original artwork; same mark as the Android launcher icon).
+     A listener (dot) with sound arriving from both sides in space (arcs). Rendered to Spatia.ico by make-icon.py. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="#1B2A41"/>
+  <circle cx="128" cy="128" r="20" fill="#7FD1C7"/>
+  <g fill="none" stroke-linecap="round" stroke-width="16">
+    <path d="M85.6 85.6 A60 60 0 0 0 85.6 170.4 M170.4 85.6 A60 60 0 0 1 170.4 170.4" stroke="#7FD1C7"/>
+    <path d="M57.3 57.3 A100 100 0 0 0 57.3 198.7 M198.7 57.3 A100 100 0 0 1 198.7 198.7" stroke="#B9E8E2"/>
+  </g>
+</svg>

@@ -5,7 +5,7 @@ using Spatia.Core.Models;
 using Spatia.Core.Native;
 using Spatia.Core.Settings;
 
-namespace Spatia.App;
+namespace Spatia.UI;
 
 /// <summary>
 /// Owns the app's state and services (settings, devices, volume, player) and applies the effective settings to the
@@ -124,7 +124,7 @@ public sealed class AppController : IDisposable
     public void PlaySample()
     {
         LastError = null;
-        Player.OpenSample(Engine.RenderSampleTrack(44100), 44100, App.S["SampleTitle"]);
+        Player.OpenSample(Engine.RenderSampleTrack(44100), 44100, UiStrings.S["SampleTitle"]);
         Changed?.Invoke();
     }
 

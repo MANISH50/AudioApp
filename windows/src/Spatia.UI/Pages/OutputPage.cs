@@ -1,9 +1,9 @@
 using Microsoft.UI.Xaml.Controls;
 using Spatia.Core.Logic;
 using Spatia.Core.Models;
-using static Spatia.App.Ui.Kit;
+using static Spatia.UI.Ui.Kit;
 
-namespace Spatia.App.Pages;
+namespace Spatia.UI.Pages;
 
 public sealed partial class OutputPage : UserControl
 {
@@ -21,7 +21,7 @@ public sealed partial class OutputPage : UserControl
     public OutputPage(AppController app)
     {
         _app = app;
-        var s = App.S;
+        var s = UiStrings.S;
         _override = Choices(s["OutputProfile"], new[] { s["OutputAuto"] }.Concat(Types.Select(t => s["Output_" + t])),
             i => app.SetManualOutput(i == 0 ? null : Types[i - 1]));
         _remember = Toggle(s["OutputRemember"], app.SetRememberPerDevice, s["OutputRememberHelp"]);
@@ -41,7 +41,7 @@ public sealed partial class OutputPage : UserControl
 
     private void Refresh()
     {
-        var s = App.S;
+        var s = UiStrings.S;
         var p = _app.Profile;
         _active.Text = s["Output_" + p.Output] + (_app.Devices.DefaultDeviceName is { } n ? $" — {n}" : "");
         _how.Text = s[_app.State.ManualOutput is null ? "OutputDetected" : "OutputManual"];

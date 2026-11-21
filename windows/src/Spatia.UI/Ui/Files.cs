@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml;
 
-namespace Spatia.App.Ui;
+namespace Spatia.UI.Ui;
 
 /// <summary>File picking for an unpackaged app (the picker must be bound to the window handle).</summary>
 public static class Files

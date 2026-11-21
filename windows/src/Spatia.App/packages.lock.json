@@ -131,11 +131,20 @@
           "Concentus": "[2.2.2, )",
           "Concentus.OggFile": "[1.0.6, )",
           "NAudio.Wasapi": "[2.2.1, )",
-          "Spatia.Core": "[0.1.0, )"
+          "Spatia.Core": "[0.1.1, )"
         }
       },
       "spatia.core": {
         "type": "Project"
+      },
+      "spatia.ui": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Windows.SDK.BuildTools": "[10.0.26100.7705, )",
+          "Microsoft.WindowsAppSDK": "[1.8.260921001, )",
+          "Spatia.Audio": "[0.1.1, )",
+          "Spatia.Core": "[0.1.1, )"
+        }
       },
       "Concentus": {
         "type": "CentralTransitive",

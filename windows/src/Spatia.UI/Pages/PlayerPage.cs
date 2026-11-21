@@ -2,11 +2,11 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
-using Spatia.App.Ui;
+using Spatia.UI.Ui;
 using Spatia.Core.Logic;
-using static Spatia.App.Ui.Kit;
+using static Spatia.UI.Ui.Kit;
 
-namespace Spatia.App.Pages;
+namespace Spatia.UI.Pages;
 
 public sealed partial class PlayerPage : UserControl
 {
@@ -32,7 +32,7 @@ public sealed partial class PlayerPage : UserControl
     public PlayerPage(AppController app, Window window)
     {
         _app = app;
-        var s = App.S;
+        var s = UiStrings.S;
         _playPause = Kit.Button(s["Play"], app.Player.PlayPause);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_position, s["PlaybackPosition"]);
         _position.ValueChanged += (_, e) =>
@@ -77,14 +77,14 @@ public sealed partial class PlayerPage : UserControl
 
     private void ShowError(string message)
     {
-        _error.Title = App.S["CannotPlay"];
+        _error.Title = UiStrings.S["CannotPlay"];
         _error.Message = message;
         _error.IsOpen = true;
     }
 
     private void Refresh()
     {
-        var s = App.S;
+        var s = UiStrings.S;
         var p = _app.Player;
         _title.Text = p.Title ?? s["NothingLoaded"];
         _playPause.Content = s[p.IsPlaying ? "Pause" : "Play"];
@@ -114,8 +114,8 @@ public sealed partial class PlayerPage : UserControl
         var m = chain.Meters();
         _peak.Value = Math.Clamp(m.PeakDb, -60, 0);
         _rms.Value = Math.Clamp(m.RmsDb, -60, 0);
-        _peakText.Text = App.S.Format("MeterPeak", m.PeakDb <= -120 ? "−∞" : m.PeakDb.ToString("0.0", System.Globalization.CultureInfo.CurrentCulture));
-        _rmsText.Text = App.S.Format("MeterRms", m.RmsDb <= -120 ? "−∞" : m.RmsDb.ToString("0.0", System.Globalization.CultureInfo.CurrentCulture));
+        _peakText.Text = UiStrings.S.Format("MeterPeak", m.PeakDb <= -120 ? "−∞" : m.PeakDb.ToString("0.0", System.Globalization.CultureInfo.CurrentCulture));
+        _rmsText.Text = UiStrings.S.Format("MeterRms", m.RmsDb <= -120 ? "−∞" : m.RmsDb.ToString("0.0", System.Globalization.CultureInfo.CurrentCulture));
         var bands = chain.Spectrum(_bars.Length);
         var w = Math.Max(1, _spectrum.ActualWidth) / _bars.Length;
         for (var i = 0; i < _bars.Length; i++)

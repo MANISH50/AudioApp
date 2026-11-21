@@ -10,7 +10,7 @@ namespace Spatia.Core.Tests;
 public partial class StringsTests
 {
     private static readonly string Root = FindRepoRoot();
-    private static readonly string AppDir = Path.Combine(Root, "windows", "src", "Spatia.App");
+    private static readonly string AppDir = Path.Combine(Root, "windows", "src", "Spatia.UI");
 
     private static string FindRepoRoot()
     {
@@ -25,7 +25,7 @@ public partial class StringsTests
         return new StringTable(StringTable.Parse(f));
     }
 
-    [GeneratedRegex(@"(?:\bs|App\.S)(?:\.Format)?[\[\(]""([A-Za-z_]+)""")]
+    [GeneratedRegex(@"(?:\bs|UiStrings\.S)(?:\.Format)?[\[\(]""([A-Za-z_]+)""")]
     private static partial Regex KeyUse();
 
     [Fact]

@@ -4,7 +4,7 @@ using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
-namespace Spatia.App.Ui;
+namespace Spatia.UI.Ui;
 
 /// <summary>Small builders so pages read like layouts. Every interactive control gets an accessible name.</summary>
 public static class Kit

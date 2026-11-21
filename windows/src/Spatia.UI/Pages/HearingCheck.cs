@@ -1,9 +1,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Spatia.Core.Models;
-using static Spatia.App.Ui.Kit;
+using static Spatia.UI.Ui.Kit;
 
-namespace Spatia.App.Pages;
+namespace Spatia.UI.Pages;
 
 /// <summary>
 /// Ascending-level listening check: per ear and frequency, the tone starts very quiet and rises in 5 dB steps until
@@ -19,7 +19,7 @@ public sealed class HearingCheck(AppController app)
     public async Task RunAsync(XamlRoot? root)
     {
         if (root is null) return;
-        var s = App.S;
+        var s = UiStrings.S;
         var freqs = SoundSettings.HearingFrequencies;
         var progress = new ProgressBar { Minimum = 0, Maximum = freqs.Length * 2 };
         var what = Body(s["HearingInstructions"]);
@@ -55,9 +55,9 @@ public sealed class HearingCheck(AppController app)
             Show(); Play();
         }
 
-        buttons.Children.Add(Spatia.App.Ui.Kit.Button(s["HearingHeard"], () => Record(_level), accent: true));
-        buttons.Children.Add(Spatia.App.Ui.Kit.Button(s["HearingLouder"], () => { if (_level >= MaxDb) Record(MaxDb); else { _level += 5; Show(); Play(); } }));
-        buttons.Children.Add(Spatia.App.Ui.Kit.Button(s["HearingReplay"], Play));
+        buttons.Children.Add(Spatia.UI.Ui.Kit.Button(s["HearingHeard"], () => Record(_level), accent: true));
+        buttons.Children.Add(Spatia.UI.Ui.Kit.Button(s["HearingLouder"], () => { if (_level >= MaxDb) Record(MaxDb); else { _level += 5; Show(); Play(); } }));
+        buttons.Children.Add(Spatia.UI.Ui.Kit.Button(s["HearingReplay"], Play));
         buttons.Visibility = Visibility.Collapsed;
 
         dialog.PrimaryButtonClick += (_, e) =>

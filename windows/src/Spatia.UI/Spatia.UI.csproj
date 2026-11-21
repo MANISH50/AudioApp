@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RootNamespace>Spatia.UI</RootNamespace>
+    <UseWinUI>true</UseWinUI>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- All UI is built in C# (no .xaml files), so this library compiles and is analysed on any OS. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Spatia.Core\Spatia.Core.csproj" />
+    <ProjectReference Include="..\Spatia.Audio\Spatia.Audio.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- One line per language: Strings\<culture>\Resources.resw -->
+    <EmbeddedResource Include="Strings\en-US\Resources.resw" LogicalName="Strings.en-US.Resources.resw" />
+  </ItemGroup>
+</Project>

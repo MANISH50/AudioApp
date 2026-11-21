@@ -13,8 +13,8 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Platforms>x64</Platforms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- The UI is built in C# (no XAML files), so it compiles and is checked on any OS. -->
-    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <ApplicationIcon>..\..\assets\Spatia.ico</ApplicationIcon>
+    <!-- Only App.xaml and MainWindow.xaml live here (standard WinUI startup); all pages are in Spatia.UI. -->
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" />
@@ -23,10 +23,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Spatia.Core\Spatia.Core.csproj" />
     <ProjectReference Include="..\Spatia.Audio\Spatia.Audio.csproj" />
+    <ProjectReference Include="..\Spatia.UI\Spatia.UI.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <!-- One line per language: Strings\<culture>\Resources.resw -->
-    <EmbeddedResource Include="Strings\en-US\Resources.resw" LogicalName="Strings.en-US.Resources.resw" />
+    <Content Include="..\..\assets\Spatia.ico" Link="Spatia.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <!-- The shared engine (android/core-dsp, Kotlin/Native mingwX64). CI passes SpatiaNativeDir. -->
   <PropertyGroup>

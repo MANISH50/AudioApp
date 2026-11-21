@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- English strings. To localise, copy to Strings/<culture>/Resources.resw, translate the values, and add an
-     EmbeddedResource line for it in Spatia.App.csproj. Keep {0}-style placeholders. -->
+     EmbeddedResource line for it in Spatia.UI.csproj. Keep {0}-style placeholders. -->
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>

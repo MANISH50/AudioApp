@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  BinSkim policy for Spatia. Every rule runs; only the ones below are relaxed, each with a reason.
+  BA2008 EnableControlFlowGuard: spatia_dsp.dll is built by Kotlin/Native's MinGW-based toolchain, which cannot emit
+  CFG metadata. The DLL does have ASLR (DYNAMIC_BASE + HIGH_ENTROPY_VA), DEP (NX_COMPAT) and no writable+executable
+  sections, and it exports only bounded, validated C functions (see android/core-dsp/.../capi/CApi.kt).
+  Revisit if Kotlin/Native gains an MSVC/clang-cl toolchain with /guard:cf.
+-->
+<Properties>
+  <Properties Key="BA2008.EnableControlFlowGuard.Options">
+    <Property Key="RuleEnabled" Value="Disabled" />
+  </Properties>
+</Properties>

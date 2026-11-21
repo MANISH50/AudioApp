@@ -1,9 +1,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Spatia.Core.Native;
-using static Spatia.App.Ui.Kit;
+using static Spatia.UI.Ui.Kit;
 
-namespace Spatia.App.Pages;
+namespace Spatia.UI.Pages;
 
 /// <summary>What this PC and its outputs support, and why any option is unavailable.</summary>
 public sealed partial class StatusPage : UserControl
@@ -12,7 +12,7 @@ public sealed partial class StatusPage : UserControl
 
     public StatusPage(AppController app)
     {
-        var s = App.S;
+        var s = UiStrings.S;
         var os = System.Environment.OSVersion.Version;
         var rows = new (string Title, St Status, string Reason)[]
         {

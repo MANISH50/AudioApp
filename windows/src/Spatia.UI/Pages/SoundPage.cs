@@ -1,12 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Spatia.App.Ui;
+using Spatia.UI.Ui;
 using Spatia.Core.Logic;
 using Spatia.Core.Models;
-using static Spatia.App.Ui.Kit;
+using static Spatia.UI.Ui.Kit;
 using Env = Spatia.Core.Models.Environment;
 
-namespace Spatia.App.Pages;
+namespace Spatia.UI.Pages;
 
 public sealed partial class SoundPage : UserControl
 {
@@ -33,7 +33,7 @@ public sealed partial class SoundPage : UserControl
     public SoundPage(AppController app, Window window)
     {
         _app = app;
-        var s = App.S;
+        var s = UiStrings.S;
         string Pct(double v) => $"{Math.Round(v * 100)}%";
         string Db(double v) => Labels.Db((float)v);
 
@@ -130,7 +130,7 @@ public sealed partial class SoundPage : UserControl
     private void Refresh()
     {
         var x = _app.Settings;
-        var s = App.S;
+        var s = UiStrings.S;
         var headphones = _app.Profile.Safety.IsHeadphones;
         _editing.Text = s.Format("EditingFor", s["Output_" + _app.Profile.Output]);
         _crossfeed.IsEnabled = headphones && !x.SpatialEnabled;

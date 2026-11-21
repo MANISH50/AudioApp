@@ -31,6 +31,7 @@ OutputBaseFilename=Spatia-Setup-{#AppVersion}-x64
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\assets\Spatia.ico
 UninstallDisplayIcon={app}\Spatia.exe
 UninstallDisplayName=Spatia
 CloseApplications=yes
