@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
       - name: Test, lint and build release (R8)
         run: ./gradlew :core-dsp:test :app:testDebugUnitTest :app:lintDebug :app:assembleRelease :app:assembleDebug
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

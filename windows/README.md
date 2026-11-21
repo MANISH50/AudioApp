@@ -29,7 +29,7 @@ Spatia is a spatial audio player and sound enhancer for Windows 10 (version 2004
 
 ## Build
 
-Requirements: JDK 17, .NET SDK 10, and Windows to publish the app. The engine and tests also build on Linux.
+Requirements: JDK 21, .NET SDK 10, and Windows to publish the app. The engine and tests also build on Linux.
 
 ```
 cd android && ./gradlew :core-dsp:allTests :core-dsp:linkReleaseSharedMingwX64   # builds spatia_dsp.dll
