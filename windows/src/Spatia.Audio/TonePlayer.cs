@@ -3,14 +3,19 @@ using NAudio.Wave;
 
 namespace Spatia.Audio;
 
-/// <summary>Plays short faded sine tones to one ear for the hearing check (bypasses all processing).</summary>
+/// <summary>
+/// Plays short sounds straight to Windows' default output (shared mode, no Spatia processing): faded sine tones for
+/// the hearing check, and the "Test sound" clip. Because the clip is unprocessed by Spatia, what you hear is exactly
+/// what Equalizer APO does to every app.
+/// </summary>
 public sealed class TonePlayer : IDisposable
 {
     private WasapiOut? _out;
 
+    public bool IsPlaying => _out?.PlaybackState == PlaybackState.Playing;
+
     public void Play(float freqHz, float levelDbfs, bool leftEar)
     {
-        Stop();
         const int sr = 48000;
         var amp = MathF.Pow(10, Math.Clamp(levelDbfs, -90f, -10f) / 20f);
         var frames = sr; var fade = sr / 20;
@@ -21,9 +26,17 @@ public sealed class TonePlayer : IDisposable
             var v = MathF.Sin(2 * MathF.PI * freqHz * i / sr) * amp * env;
             data[2 * i + (leftEar ? 0 : 1)] = v;
         }
-        var device = new MMDeviceEnumerator().GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+        PlayClip(data, sr);
+    }
+
+    /// <summary>Plays interleaved stereo float samples once.</summary>
+    public void PlayClip(float[] interleavedStereo, int sampleRate)
+    {
+        Stop();
+        using var enumerator = new MMDeviceEnumerator();
+        var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
         _out = new WasapiOut(device, AudioClientShareMode.Shared, true, 100);
-        _out.Init(new MemoryTrack(data, sr, 2));
+        _out.Init(new MemoryTrack(interleavedStereo, sampleRate, 2));
         _out.Play();
     }
 

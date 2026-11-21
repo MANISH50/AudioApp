@@ -1,7 +1,9 @@
 <#
   Spatia for Windows - end-to-end UI smoke test (runs on a real Windows desktop in CI).
-  Installs with the real installer, launches the installed app, requires a VISIBLE window, visits every page,
-  plays the sample, changes an environment, screenshots each page, checks the log for errors, then uninstalls.
+  Installs with the real installer, connects Spatia to a stand-in Equalizer APO config folder (SPATIA_APO_DIR, a temp
+  folder with a config.txt), launches the installed app, requires a VISIBLE window, visits every page, changes mode,
+  environment and intensity and checks that spatia.txt and the rendered impulse response change, plays the test sound,
+  screenshots each page, checks the log for errors, then uninstalls (which must disconnect again).
   Any failure throws, which fails the CI job.  Usage:  ui-smoke.ps1 -Installer <setup.exe> -OutDir <dir>
 #>
 param(
@@ -111,6 +113,37 @@ function Analyze-Dump {
     $out | Out-File (Join-Path $OutDir 'analyze.txt')
 }
 
+# ---------------------------------------------------------------- stand-in Equalizer APO + connect helper
+Step 'Connect to a stand-in Equalizer APO config folder (--apo-connect, not elevated)'
+$apoDir = Join-Path $env:TEMP 'spatia-apo-test'
+Remove-Item $apoDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path $apoDir | Out-Null
+$apoConfig = Join-Path $apoDir 'config.txt'
+Set-Content -Path $apoConfig -Value "Preamp: 0 dB" -Encoding ascii
+$env:SPATIA_APO_DIR = $apoDir
+$spatiaTxt = Join-Path $apoDir 'Spatia\spatia.txt'
+$include = 'Include: Spatia\spatia.txt'
+$sid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+foreach ($i in 1, 2) {
+    $c = Start-Process $exe -ArgumentList '--apo-connect', $sid -Wait -PassThru
+    if ($c.ExitCode -ne 0) { Fail "--apo-connect exit code $($c.ExitCode)" }
+}
+$lines = @(Get-Content $apoConfig | Where-Object { $_.Trim() -eq $include })
+if ($lines.Count -ne 1) { Fail "config.txt should contain the include line exactly once, found $($lines.Count)" }
+if (-not (Test-Path (Join-Path $apoDir 'config.txt.spatia-backup'))) { Fail 'config.txt backup missing' }
+if (-not (Test-Path $spatiaTxt)) { Fail 'Spatia\spatia.txt not created by connect' }
+
+function Wait-Config([scriptblock] $ok, [string] $what, [int] $seconds = 10) {
+    $deadline = (Get-Date).AddSeconds($seconds)
+    while ((Get-Date) -lt $deadline) {
+        $t = if (Test-Path $spatiaTxt) { Get-Content $spatiaTxt -Raw } else { '' }
+        if (& $ok $t) { return $t }
+        Start-Sleep -Milliseconds 300
+    }
+    Write-Host '--- spatia.txt ---'; Write-Host $t
+    Fail "spatia.txt: $what"
+}
+
 # ---------------------------------------------------------------- launch
 Write-Host 'Resource index files installed:'
 Get-ChildItem (Split-Path $exe) -Filter *.pri | ForEach-Object { Write-Host "  $($_.Name)  $($_.Length) bytes" }
@@ -121,7 +154,7 @@ if ($proc.HasExited) {
     # Crash during startup: find which page triggers it by starting on each page in turn (diagnostics mode).
     Write-Host "Spatia exited with code $($proc.ExitCode). Bisecting by start page:"
     if (Test-Path $logFile) { Get-Content $logFile | Write-Host }
-    foreach ($tag in 'status', 'other', 'output', 'sound', 'player') {
+    foreach ($tag in 'status', 'other', 'output', 'sound', 'home') {
         Remove-Item $logFile -ErrorAction SilentlyContinue
         $env:SPATIA_START_PAGE = $tag
         $t = Start-Process $exe -PassThru
@@ -148,10 +181,10 @@ $win = Wait-Window $proc 'Spatia'
 Write-Host "Window visible: handle $($win.Current.NativeWindowHandle), $($win.Current.BoundingRectangle)"
 
 $pages = [ordered]@{
-    'nav-player' = 'Now playing'
+    'nav-home'   = 'System-wide sound (Equalizer APO)'
     'nav-sound'  = 'Environment'
     'nav-output' = 'Active output'
-    'nav-other'  = "Why other apps aren't enhanced yet"
+    'nav-other'  = 'How Spatia reaches every app'
     'nav-status' = 'What this PC supports'
 }
 foreach ($id in $pages.Keys) {
@@ -163,34 +196,72 @@ foreach ($id in $pages.Keys) {
     if ($proc.HasExited) { Fail "Spatia exited after opening $id" }
     Shot $win $id
 }
+if (Find-ByName $win 'Open file' 1) { Fail 'The file player should be gone' }
 
-Step 'Player: play the built-in sample'
-Select-Item (Find-ById $win 'nav-player')
-$play = Find-ByName $win 'Play sample'
-if (-not $play) { Fail "'Play sample' button not found" }
-$play.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
-Start-Sleep -Seconds 3
-if ($proc.HasExited) { Fail 'Spatia exited after Play sample' }
-$playing = Find-ByName $win 'Spatia sample track' 5
-$noDevice = $win.FindFirst($T::Descendants, (New-Object $P($A::NameProperty, "The playback device stopped or was disconnected. Pick another output in Windows sound settings, then press Play.")))
-if (-not $playing -and -not $noDevice) { Fail 'Neither the sample title nor a clear device message appeared' }
-Write-Host ("Sample: " + $(if ($playing) { 'playing' } else { 'no audio device on this machine (message shown)' }))
-Shot $win 'player-sample'
+Step 'Home: connected state, settings written to spatia.txt'
+Select-Item (Find-ById $win 'nav-home')
+if (-not (Find-ById $win 'apo-disconnect')) { Fail 'Home does not show the connected state (Disconnect button)' }
+$before = Wait-Config { param($t) $t -match 'Preamp:' } 'no Preamp line after startup'
+
+Step 'Home: change mode'
+$mode = Find-ByName $win 'Movie'
+if (-not $mode) { Fail "'Movie' mode not found" }
+Select-Item $mode
+$afterMode = Wait-Config { param($t) $t -ne $before -and $t -match 'Filter: ON' } 'did not change after choosing Movie'
+
+Step 'Home: Spatia off and on again'
+$power = Find-ById $win 'power'
+if (-not $power) { Fail 'On/off switch not found' }
+$tp = $power.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
+$tp.Toggle()
+Wait-Config { param($t) $t -match 'Spatia is off' -and $t -notmatch 'Filter:' } 'not neutral when Spatia is off' | Out-Null
+$tp.Toggle()
+Wait-Config { param($t) $t -match 'Filter: ON' } 'filters not back after turning Spatia on' | Out-Null
+
+Step 'Home: test sound'
+$test = Find-ById $win 'test-sound'
+if (-not $test) { Fail "'Test sound' button not found" }
+$test.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+Start-Sleep -Seconds 2
+if ($proc.HasExited) { Fail 'Spatia exited after Test sound' }
+Shot $win 'home-test-sound'
+
+Step 'Home: disconnect and connect again (in-process: the stand-in folder is writable)'
+(Find-ById $win 'apo-disconnect').GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+$connect = $null
+$deadline = (Get-Date).AddSeconds(10)
+while (-not $connect -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 300; $connect = Find-ById $win 'apo-connect' }
+if (-not $connect) { Fail 'Connect button did not appear after Disconnect' }
+if (@(Get-Content $apoConfig | Where-Object { $_.Trim() -eq $include }).Count -ne 0) { Fail 'Disconnect left the include line' }
+Shot $win 'home-disconnected'
+$connect.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+$disc = $null
+$deadline = (Get-Date).AddSeconds(10)
+while (-not $disc -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 300; $disc = Find-ById $win 'apo-disconnect' }
+if (-not $disc) { Fail 'Did not reconnect' }
+if (@(Get-Content $apoConfig | Where-Object { $_.Trim() -eq $include }).Count -ne 1) { Fail 'Reconnect did not restore exactly one include line' }
+Shot $win 'home-connected'
 
 Step 'Sound: choose Hall and raise intensity'
 Select-Item (Find-ById $win 'nav-sound')
 $hall = Find-ByName $win 'Hall'
 if (-not $hall) { Fail "'Hall' environment not found" }
 Select-Item $hall
+$withHall = Wait-Config { param($t) $t -match 'Convolution: env_[0-9a-f]+\.wav' } 'no Convolution line after choosing Hall'
+$ir1 = @(Get-ChildItem (Join-Path $apoDir 'Spatia') -Filter 'env_*.wav')
+if ($ir1.Count -ne 1) { Fail "Expected one impulse response, found $($ir1.Count)" }
+if ($ir1[0].Length -lt 48000 * 2 * 4 * 2) { Fail "Impulse response too short ($($ir1[0].Length) bytes)" }
 $slider = Find-ByName $win 'Effect intensity'
-if ($slider) {
-    $rv = $null
-    if ($slider.TryGetCurrentPattern([System.Windows.Automation.RangeValuePattern]::Pattern, [ref]$rv)) { $rv.SetValue(0.8) }
-}
-Start-Sleep -Seconds 2
+if (-not $slider) { Fail "'Effect intensity' slider not found" }
+$rv = $slider.GetCurrentPattern([System.Windows.Automation.RangeValuePattern]::Pattern)
+$rv.SetValue(0.8)
+Wait-Config { param($t) $t -ne $withHall -and $t -match 'Convolution: env_' } 'did not change after moving intensity' | Out-Null
+$ir2 = @(Get-ChildItem (Join-Path $apoDir 'Spatia') -Filter 'env_*.wav')
+if ($ir2.Count -ne 1 -or $ir2[0].Name -eq $ir1[0].Name) { Fail 'Impulse response was not re-rendered (or stale files were left)' }
 if ($proc.HasExited) { Fail 'Spatia exited after changing the environment' }
 if (-not (Find-ByName $win 'An empty concert hall: a short pause, then a long, warm echo from every wall.')) { Fail 'Hall description not shown' }
 Shot $win 'sound-hall'
+Copy-Item $spatiaTxt (Join-Path $OutDir 'spatia.txt')
 
 # ---------------------------------------------------------------- close + log
 Step 'Close the app'
@@ -229,5 +300,8 @@ $un = Start-Process (Join-Path (Split-Path $exe) 'unins000.exe') -ArgumentList '
 Start-Sleep -Seconds 3
 if (Test-Path $exe) { Fail 'Spatia.exe still present after uninstall' }
 if (Test-Path $startMenu) { Fail 'Start-menu shortcut still present after uninstall' }
+if (@(Get-Content $apoConfig | Where-Object { $_.Trim() -eq $include }).Count -ne 0) { Fail 'Uninstall did not disconnect from Equalizer APO' }
+Remove-Item Env:\SPATIA_APO_DIR
+Remove-Item $apoDir -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host 'UI smoke test passed.'

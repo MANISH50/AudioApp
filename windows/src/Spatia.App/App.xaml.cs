@@ -5,7 +5,8 @@ using Spatia.UI;
 namespace Spatia.App;
 
 /// <summary>
-/// Standard WinUI application (XAML-generated entry point and type metadata). Any failure before the window is up is
+/// Standard WinUI application (XAML-generated entry point and type metadata). Command-line Equalizer APO
+/// connect/disconnect (the elevated helper) is handled first and exits without UI. Any failure before the window is up is
 /// logged and shown in a native dialog, then the process exits: Spatia never keeps running invisibly.
 /// </summary>
 public partial class App : Application, IDisposable
@@ -15,6 +16,13 @@ public partial class App : Application, IDisposable
     public App()
     {
         AppLog.Initialize();
+        // Elevated Equalizer APO helper (Spatia.exe --apo-connect <SID> / --apo-disconnect): do the file work and exit
+        // before any window or audio service starts.
+        var args = System.Environment.GetCommandLineArgs();
+        if (Spatia.Core.Apo.ApoCommandLine.TryRun(args.Length > 1 ? args[1..] : []) is { } exitCode)
+        {
+            System.Environment.Exit(exitCode);
+        }
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
             if (e.ExceptionObject is Exception ex) Fatal.ReportAndExit("unhandled", ex);

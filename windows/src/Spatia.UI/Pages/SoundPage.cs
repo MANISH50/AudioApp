@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Spatia.UI.Ui;
+using Spatia.Core.Apo;
 using Spatia.Core.Logic;
 using Spatia.Core.Models;
 using static Spatia.UI.Ui.Kit;
@@ -26,6 +27,8 @@ public sealed partial class SoundPage : UserControl
     private readonly TextBlock _correctionStatus = Caption("");
     private readonly Button _hearingStart, _irRemove;
     private readonly InfoBar _note = new() { IsClosable = true };
+    private readonly TextBlock _applies = Caption("");
+    private readonly InfoBar _approx = new() { IsClosable = false, Severity = InfoBarSeverity.Informational };
 
     private static readonly Mode[] Modes = Enum.GetValues<Mode>();
     private static readonly Env[] Envs = Enum.GetValues<Env>();
@@ -84,10 +87,12 @@ public sealed partial class SoundPage : UserControl
         Content = Page(
             Title(s["NavSound"]),
             _editing,
+            _applies,
             _note,
+            _approx,
             Section(s["ModesTitle"], _modes),
             Section(s["EnvTitle"], Caption(s["EnvHelp"]), _envs, _envDesc, _intensity,
-                Row(_resetIntensity, Kit.Button(s["TryWithSample"], app.PlaySample))),
+                Row(_resetIntensity, Kit.Button(s["TestSound"], app.PlayTestSound))),
             Section(s["SpatialTitle"], _spatial, _width, _room, _upmix, _headTracking, Caption(s["HeadTrackingWindows"])),
             Section(s["EqTitle"], eqPanel, Kit.Button(s["EqReset"], () => app.Tweak(x => x with { EqGainsDb = new float[10] }))),
             Section(s["ToneTitle"], _bass, _treble, _preamp, _voice, _normalize, _night, _loudComp),
@@ -138,6 +143,11 @@ public sealed partial class SoundPage : UserControl
         _hearingStart.IsEnabled = headphones;
         _hearingStart.Content = s[headphones ? "HearingStart" : "HearingNeedsHeadphones"];
         _ir.IsEnabled = _irMix.IsEnabled = _irRemove.IsEnabled = _app.HasImpulse;
+        _applies.Text = s[_app.Apo.State == ApoState.Connected ? "SoundAppliesAll" : "ApoNotConnectedNote"];
+        var approx = _app.LastPlan?.Approximations ?? [];
+        _approx.Title = s["ApproxTitle"];
+        _approx.Message = string.Join("\n", approx.Select(a => s["Approx_" + a]));
+        _approx.IsOpen = approx.Count > 0 && _app.Apo.State == ApoState.Connected;
         if (ReferenceEquals(x, _shown)) return; // only touch settings controls when settings actually changed
         _shown = x;
 

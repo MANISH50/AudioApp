@@ -48,10 +48,9 @@ public partial class StringsTests
         var expected = Enum.GetValues<Mode>().Select(m => "Mode_" + m)
             .Concat(Enum.GetValues<Models.Environment>().SelectMany(e => new[] { "Env_" + e, "EnvDesc_" + e }))
             .Concat(Enum.GetValues<OutputType>().Select(o => "Output_" + o))
-            .Concat(Enum.GetValues<FormatVerdict>().Select(v => "Format_" + v))
-            .Concat(Enum.GetValues<PlayerError>().Select(e => "PlayerError_" + e))
+            .Concat(Enum.GetValues<Apo.ApoState>().Select(a => "Apo_" + a))
             .Concat(new[] { "Status_Available", "Status_Limited", "Status_Unavailable" })
-            .Concat(new[] { "Pause", "Play", "SampleGroove", "SampleVoice", "SampleHits", "SampleSweep", "IrLoaded", "IrFailed",
+            .Concat(new[] { "IrLoaded", "IrFailed", "Approx_night", "Approx_normalization", "Approx_psychoBass", "Approx_spatial", "Approx_crossfeed",
                 "OutputDetected", "OutputManual", "HearingLeft", "HearingRight", "HearingNeedsHeadphones",
                 "VolumeWarningHeadphones", "VolumeWarningSpeaker" });
         var missing = expected.Where(k => !keys.Contains(k)).ToList();

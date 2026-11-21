@@ -14,8 +14,7 @@ public sealed partial class OutputPage : UserControl
     private readonly TextBlock _volume = Caption("");
     private readonly TextBlock _devices = Caption("");
     private readonly RadioButtons _override;
-    private readonly ToggleSwitch _remember, _exclusive, _dose;
-    private readonly TextBlock _doseText = Body("");
+    private readonly ToggleSwitch _remember;
     private static readonly OutputType[] Types = Enum.GetValues<OutputType>();
 
     public OutputPage(AppController app)
@@ -25,15 +24,11 @@ public sealed partial class OutputPage : UserControl
         _override = Choices(s["OutputProfile"], new[] { s["OutputAuto"] }.Concat(Types.Select(t => s["Output_" + t])),
             i => app.SetManualOutput(i == 0 ? null : Types[i - 1]));
         _remember = Toggle(s["OutputRemember"], app.SetRememberPerDevice, s["OutputRememberHelp"]);
-        _exclusive = Toggle(s["ExclusiveEnable"], app.SetExclusiveMode, s["ExclusiveHelp"]);
-        _dose = Toggle(s["DoseEnable"], app.SetDoseTracking, s["DoseHelp"]);
 
         Content = Page(
             Title(s["NavOutput"]),
             Section(s["OutputActive"], _active, _how, _safety, _volume, _devices),
-            Section(s["OutputProfile"], _override, _remember),
-            Section(s["ExclusiveTitle"], _exclusive, Caption(s["ExclusiveHelp"])),
-            Section(s["DoseTitle"], _dose, Caption(s["DoseHelp"]), _doseText));
+            Section(s["OutputProfile"], _override, _remember, Caption(s["SoundAppliesAll"])));
 
         Loaded += (_, _) => { app.Changed += Refresh; Refresh(); };
         Unloaded += (_, _) => app.Changed -= Refresh;
@@ -50,8 +45,5 @@ public sealed partial class OutputPage : UserControl
         _devices.Text = s["OutputConnected"] + " " + string.Join(", ", _app.Devices.Outputs.Select(o => $"{o.Name} ({s["Output_" + o.Type]})"));
         _override.Set(_app.State.ManualOutput is { } m ? Array.IndexOf(Types, m) + 1 : 0);
         _remember.Set(_app.State.RememberPerDevice);
-        _exclusive.Set(_app.Player.ExclusiveMode);
-        _dose.Set(_app.State.DoseTrackingEnabled);
-        _doseText.Text = _app.State.DoseTrackingEnabled ? s.Format("DoseValue", (int)(_app.State.DoseFraction * 100)) : "";
     }
 }

@@ -5,9 +5,13 @@ package io.spatia.dsp.capi
 import io.spatia.dsp.DspChain
 import io.spatia.dsp.SafetyPolicy
 import io.spatia.dsp.analysis.Meters
+import io.spatia.dsp.apo.ApoImpulse
+import io.spatia.dsp.apo.ApoPlanner
+import io.spatia.dsp.apo.ApoPlan
 import io.spatia.dsp.filters.Convolver
 import io.spatia.dsp.io.ParametricEqParser
 import io.spatia.dsp.io.WavReader
+import io.spatia.dsp.io.WavWriter
 import io.spatia.dsp.model.EqFilter
 import io.spatia.dsp.model.Mode
 import io.spatia.dsp.model.OutputSafety
@@ -46,7 +50,7 @@ private const val MAX_FRAMES = 1 shl 16
 
 /** Bumped when the C API changes incompatibly. */
 @CName("spatia_api_version")
-fun apiVersion(): Int = 1
+fun apiVersion(): Int = 2
 
 private class ChainHandle(val chain: DspChain) {
     val meters = Meters(chain.sampleRate)
@@ -238,3 +242,42 @@ fun sampleTrackRender(sampleRate: Int, framesOut: CPointer<IntVar>?): CPointer<F
 
 @CName("spatia_mode_count")
 fun modeCount(): Int = Mode.entries.size
+
+// ---------------- Equalizer APO (system-wide processing on Windows) ----------------
+
+/**
+ * Plan for Equalizer APO: preamp, biquad list (the same ToneCurves specs as the in-app chain), stereo matrices and
+ * whether a room impulse response is needed. Returns ApoPlan JSON, or null for invalid settings / output type.
+ */
+@CName("spatia_apo_plan")
+fun apoPlan(json: CPointer<ByteVar>?, output: Int, attenuationDb: Float): CPointer<ByteVar>? = try {
+    val type = outputType(output)
+    val s = decodeSettings(readJson(json))
+    if (type == null || s == null) null
+    else cString(SpatiaJson.encodeToString(ApoPlan.serializer(), ApoPlanner.plan(s, type, attenuationDb)))
+} catch (e: Throwable) { null }
+
+/**
+ * Renders the room part of the chain (spatial room, optional user IR [wav]/[wavLen] mixed in, environment) as a
+ * 48 kHz 32-bit float stereo WAV whose first sample carries the dry signal. Writes the WAV size to [lenOut] and the
+ * recommended pre-gain (<= 0 dB) to [headroomDbOut]. Returns null on invalid input. Free with spatia_free.
+ */
+@CName("spatia_apo_render_ir")
+fun apoRenderIr(
+    json: CPointer<ByteVar>?, wav: CPointer<ByteVar>?, wavLen: Int, lenOut: CPointer<IntVar>?, headroomDbOut: CPointer<FloatVar>?,
+): CPointer<ByteVar>? = try {
+    val s = decodeSettings(readJson(json))
+    if (s == null || lenOut == null) null
+    else {
+        val user = if (wav == null || wavLen == 0) null
+        else if (wavLen !in 44..WavReader.MAX_BYTES) throw IllegalArgumentException("bad IR")
+        else WavReader.prepareImpulse(WavReader.read(wav.readBytes(wavLen)), ApoPlanner.SAMPLE_RATE)
+        val ir = ApoImpulse.render(s, ApoPlanner.SAMPLE_RATE, user)
+        val bytes = WavWriter.writeFloat32(ir, ApoPlanner.SAMPLE_RATE)
+        val p = nativeHeap.allocArray<ByteVar>(bytes.size)
+        for (i in bytes.indices) p[i] = bytes[i]
+        lenOut[0] = bytes.size
+        headroomDbOut?.let { it[0] = ApoImpulse.headroomDb(ir) }
+        p
+    }
+} catch (e: Throwable) { null }

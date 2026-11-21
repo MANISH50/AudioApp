@@ -7,7 +7,7 @@ using Spatia.UI.Pages;
 namespace Spatia.UI;
 
 /// <summary>
-/// The app's content: navigation between Player, Sound, Output, Other apps and Status. Hosted by the exe's
+/// The app's content: navigation between Home, Sound, Output, Other apps and Status. Hosted by the exe's
 /// MainWindow. Every startup stage is logged, and failures are shown instead of leaving an empty window.
 /// </summary>
 public sealed partial class Shell : UserControl, IDisposable
@@ -44,7 +44,7 @@ public sealed partial class Shell : UserControl, IDisposable
         _app = new AppController(DispatcherQueue);
         AppLog.Info("startup", $"audio services ready: {_app.Devices.Outputs.Count} output device(s)");
 
-        AddPage("player", s["NavPlayer"], Symbol.Play, () => new PlayerPage(_app, _window));
+        AddPage("home", s["NavHome"], Symbol.Home, () => new HomePage(_app));
         AddPage("sound", s["NavSound"], Symbol.Audio, () => new SoundPage(_app, _window));
         AddPage("output", s["NavOutput"], Symbol.Volume, () => new OutputPage(_app));
         AddPage("other", s["NavOtherApps"], Symbol.AllApps, () => new OtherAppsPage());
@@ -62,7 +62,7 @@ public sealed partial class Shell : UserControl, IDisposable
         // Show the first page right away, so the window is never empty. Selecting a NavigationView item only works
         // once the control is in the visual tree (doing it here threw 0x80070490 "Element not found"), so the
         // selection highlight is applied on Loaded.
-        var start = AppLog.DiagnosticsEnabled && System.Environment.GetEnvironmentVariable("SPATIA_START_PAGE") is { } p && _pages.ContainsKey(p) ? p : "player";
+        var start = AppLog.DiagnosticsEnabled && System.Environment.GetEnvironmentVariable("SPATIA_START_PAGE") is { } p && _pages.ContainsKey(p) ? p : "home";
         _startTag = start;
         _nav.Content = BuildPage(start);
         Loaded += SelectFirstPageOnce;
@@ -71,7 +71,7 @@ public sealed partial class Shell : UserControl, IDisposable
         AppLog.Info("startup", "user interface ready");
     }
 
-    private string _startTag = "player";
+    private string _startTag = "home";
     private bool _firstLayoutLogged;
 
     private void LogFirstLayout(object? sender, object e)

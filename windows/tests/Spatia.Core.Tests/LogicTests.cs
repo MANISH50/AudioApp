@@ -30,21 +30,6 @@ public class LogicTests
         Assert.Matches("^[0-9a-f]{16}$", k);
     }
 
-    [Theory]
-    [InlineData("song.flac", FormatVerdict.Supported)]
-    [InlineData("song.MP3", FormatVerdict.Supported)]
-    [InlineData("song.m4a", FormatVerdict.Supported)]
-    [InlineData("song.wav", FormatVerdict.Supported)]
-    [InlineData("song.opus", FormatVerdict.OpusDecoder)]
-    [InlineData("film.iamf", FormatVerdict.IamfUnsupported)]
-    [InlineData("song.dsf", FormatVerdict.KnownUnsupported)]
-    [InlineData("photo.png", FormatVerdict.NotAudio)]
-    [InlineData("what.xyz", FormatVerdict.Unknown)]
-    public void Formats_are_classified(string file, FormatVerdict expected)
-    {
-        Assert.Equal(expected, FormatSupport.Classify(file));
-    }
-
     [Fact]
     public void Labels()
     {

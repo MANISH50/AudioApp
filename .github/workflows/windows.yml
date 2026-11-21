@@ -203,4 +203,4 @@ jobs:
         run: |
           ls -la dist
           gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "Spatia for Windows ${TAG#windows-v}" \
-            --notes "Windows 10 (2004+) / 11, x64. Run Spatia-Setup-*.exe (per-user install, no admin rights), or extract the zip for a portable copy. Not code-signed yet: SmartScreen may warn (More info -> Run anyway). See windows/README.md and windows/CHANGELOG.md."
+            --notes "Windows 10 (2004+) / 11, x64. Needs Equalizer APO (free, https://sourceforge.net/projects/equalizerapo/) to change the sound of all apps. Run Spatia-Setup-*.exe (per-user install, no admin rights), or extract the zip for a portable copy. Not code-signed yet: SmartScreen may warn (More info -> Run anyway). See windows/README.md and windows/CHANGELOG.md."

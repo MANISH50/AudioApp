@@ -6,8 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NAudio.Wasapi" />
-    <PackageReference Include="Concentus" />
-    <PackageReference Include="Concentus.OggFile" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Spatia.Core\Spatia.Core.csproj" />

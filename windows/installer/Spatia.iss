@@ -1,9 +1,10 @@
 ; Spatia for Windows installer (Inno Setup 6).
-; Per-user install: no administrator rights, no system changes, no drivers or services.
-; Built by CI:  ISCC.exe /DAppVersion=0.1.0 /DSourceDir=<dotnet publish folder> Spatia.iss
+; Per-user install: no administrator rights, no system changes, no drivers or services. System-wide sound comes from
+; Equalizer APO, which the user installs separately; connecting to it (one UAC prompt) happens later, inside the app.
+; Built by CI:  ISCC.exe /DAppVersion=0.2.0 /DSourceDir=<dotnet publish folder> Spatia.iss
 
 #ifndef AppVersion
-  #define AppVersion "0.0.0"
+  #define AppVersion "0.2.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\..\out\Spatia"
@@ -52,6 +53,11 @@ Name: "{autodesktop}\Spatia"; Filename: "{app}\Spatia.exe"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\Spatia.exe"; Description: "{cm:LaunchProgram,Spatia}"; Flags: nowait postinstall skipifsilent
+
+[UninstallRun]
+; Stop shaping other apps' sound: removes Spatia's line from Equalizer APO's config.txt when that is possible without
+; administrator rights, and otherwise switches Spatia's own settings file to "no processing" (exit code 3).
+Filename: "{app}\Spatia.exe"; Parameters: "--apo-disconnect"; Flags: runhidden waituntilterminated; RunOnceId: "SpatiaApoDisconnect"
 
 [Code]
 // Settings live separately in %LOCALAPPDATA%\Spatia. Keep them unless the user asks to remove them.

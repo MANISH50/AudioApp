@@ -8,7 +8,7 @@ namespace Spatia.Core.Native;
 public static unsafe class Engine
 {
     /// <summary>C API version this app was built against.</summary>
-    public const int ExpectedApiVersion = 1;
+    public const int ExpectedApiVersion = 2;
 
     public static int ApiVersion => NativeMethods.ApiVersion();
 
@@ -68,6 +68,32 @@ public static unsafe class Engine
             new ReadOnlySpan<float>((void*)p, result.Length).CopyTo(result);
             return result;
         }
+        finally { NativeMethods.Free(p); }
+    }
+
+    /// <summary>What Equalizer APO must do to approximate the chain for these settings (filters, preamp, matrices).</summary>
+    public static Apo.ApoPlan ApoPlan(SoundSettings s, OutputType output, float attenuationDb)
+    {
+        var json = CallWithJson(SpatiaJson.Serialize(s), p => NativeMethods.ApoPlan(p, (int)output, attenuationDb));
+        return (json is null ? null : SpatiaJson.Deserialize<Apo.ApoPlan>(json))
+            ?? throw new ArgumentException("Settings rejected by engine.", nameof(s));
+    }
+
+    /// <summary>
+    /// Renders the room part of the chain (spatial room, optional user impulse response, environment) as a 48 kHz
+    /// 32-bit float stereo WAV for Equalizer APO's Convolution, plus the pre-gain (&lt;= 0 dB) that keeps the level.
+    /// </summary>
+    public static (byte[] Wav, float HeadroomDb) RenderApoImpulse(SoundSettings s, ReadOnlySpan<byte> userImpulseWav)
+    {
+        var json = Utf8Z(SpatiaJson.Serialize(s));
+        int len;
+        float headroom;
+        nint p;
+        fixed (byte* j = json)
+        fixed (byte* w = userImpulseWav)
+            p = NativeMethods.ApoRenderIr(j, userImpulseWav.IsEmpty ? null : w, userImpulseWav.Length, &len, &headroom);
+        if (p == 0) throw new InvalidOperationException("Impulse response could not be rendered.");
+        try { return (new ReadOnlySpan<byte>((void*)p, len).ToArray(), headroom); }
         finally { NativeMethods.Free(p); }
     }
 

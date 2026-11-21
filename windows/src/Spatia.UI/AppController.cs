@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using Microsoft.UI.Dispatching;
 using Spatia.Audio;
+using Spatia.Core.Apo;
 using Spatia.Core.Logic;
 using Spatia.Core.Models;
 using Spatia.Core.Native;
@@ -8,32 +10,37 @@ using Spatia.Core.Settings;
 namespace Spatia.UI;
 
 /// <summary>
-/// Owns the app's state and services (settings, devices, volume, player) and applies the effective settings to the
-/// shared engine. Raises <see cref="Changed"/> on the UI thread whenever anything visible may have changed.
+/// Owns the app's state and services (settings, devices, volume, Equalizer APO connection) and writes the effective
+/// settings to Equalizer APO, which applies them to every app. Raises <see cref="Changed"/> on the UI thread whenever
+/// anything visible may have changed.
 /// </summary>
 public sealed class AppController : IDisposable
 {
+    private const string ImpulseFile = "impulse.wav";
     private readonly DispatcherQueue _ui;
     private readonly SettingsStore _store;
     private readonly ProfileResolver _resolver = new(new NativeEngineLogic());
     private readonly DispatcherQueueTimer _tick;
+    private ApoConfigWriter? _writer;
+    private string? _writerDir;
     private byte[]? _impulse;
-    private int _sleepRemainingS;
-    private int _fadeStep = -1;
-    private int _doseCounter;
+    private float[]? _testClip;
+    private int _apoPoll;
 
     public DeviceMonitor Devices { get; }
     public VolumeMonitor Volume { get; }
-    public PlayerEngine Player { get; } = new();
     public TonePlayer Tones { get; } = new();
 
     public AppState State { get; private set; }
     public EffectiveProfile Profile { get; private set; }
     public SoundSettings Settings => Profile.Settings;
-    public string? LastError { get; private set; }
-    public int SleepMinutes { get; private set; }
-    public int SleepRemainingS => _sleepRemainingS;
     public bool HasImpulse => _impulse is not null;
+
+    /// <summary>Equalizer APO's state (refreshed every few seconds and after connect/disconnect).</summary>
+    public ApoStatus Apo { get; private set; }
+    /// <summary>The plan last written to Equalizer APO (null until the first write).</summary>
+    public ApoPlan? LastPlan { get; private set; }
+    public string? ApoError { get; private set; }
 
     /// <summary>Raised on the UI thread.</summary>
     public event Action? Changed;
@@ -48,40 +55,44 @@ public sealed class AppController : IDisposable
         Devices = new DeviceMonitor();
         Volume = new VolumeMonitor();
         Profile = _resolver.Resolve(State, Devices.Outputs, Devices.DefaultDeviceId);
-        Player.SetExclusiveMode(State.ExclusiveMode);
+        _impulse = LoadSavedImpulse();
+        Apo = ApoLocator.Detect();
 
         Devices.Changed += () => OnUi(Reapply);
-        Devices.DefaultChanged += () => OnUi(() => { Volume.Rebind(); Player.RestartOutput(); });
+        Devices.DefaultChanged += () => OnUi(Volume.Rebind);
         Volume.Changed += () => OnUi(() => { Reapply(); CheckVolume(); });
-        Player.ChainCreated += chain => ApplyTo(chain); // audio thread: the chain is thread-safe
-        Player.StateChanged += () => OnUi(() => Changed?.Invoke());
-        Player.Failed += e => OnUi(() => { LastError = e.ToString(); Changed?.Invoke(); });
 
         _tick = ui.CreateTimer();
         _tick.Interval = TimeSpan.FromSeconds(1);
         _tick.Tick += (_, _) => OnSecond();
         _tick.Start();
+        Reapply();
     }
 
     private void OnUi(Action a) => _ui.TryEnqueue(() => a());
 
-    // ---------------- applying settings ----------------
+    // ---------------- applying settings (to Equalizer APO) ----------------
 
     private void Reapply()
     {
         Profile = _resolver.Resolve(State, Devices.Outputs, Devices.DefaultDeviceId);
-        if (Player.Chain is { } c) ApplyTo(c);
+        WriteToApo();
         Changed?.Invoke();
     }
 
-    private void ApplyTo(DspChain chain)
+    private void WriteToApo()
     {
-        try
+        if (Apo.State != ApoState.Connected || Apo.SpatiaDir is not { } dir) return;
+        if (_writer is null || _writerDir != dir)
         {
-            chain.SetSettings(Profile.Settings, Profile.Output, Volume.AttenuationDb);
-            if (_impulse is { } ir) chain.SetImpulse(ir);
+            _writer?.Dispose();
+            _writer = new ApoConfigWriter(dir);
+            _writerDir = dir;
+            _writer.Written += plan => OnUi(() => { LastPlan = plan; ApoError = null; Changed?.Invoke(); });
+            _writer.Failed += e => OnUi(() => { AppLog.Error("apo write", e); ApoError = e.Message; Changed?.Invoke(); });
         }
-        catch (ObjectDisposedException) { /* replaced while applying */ }
+        var label = $"Mode {Settings.Mode}, output {Profile.Output}, Spatia {typeof(AppController).Assembly.GetName().Version}";
+        _writer.Schedule(new ApoRequest(Settings, Profile.Output, Volume.AttenuationDb, _impulse, label));
     }
 
     private void Save(AppState next)
@@ -103,63 +114,134 @@ public sealed class AppController : IDisposable
 
     public void SetManualOutput(OutputType? t) => Save(State with { ManualOutput = t });
     public void SetRememberPerDevice(bool v) => Save(State with { RememberPerDevice = v });
-    public void SetDoseTracking(bool v) => Save(State with { DoseTrackingEnabled = v });
 
-    public void SetExclusiveMode(bool v)
+    // ---------------- Equalizer APO ----------------
+
+    public void RefreshApo()
     {
-        Player.SetExclusiveMode(v);
-        Save(State with { ExclusiveMode = Player.ExclusiveMode });
+        var before = Apo;
+        Apo = ApoLocator.Detect();
+        if (before.State != Apo.State || before.ConfigDir != Apo.ConfigDir || !before.Devices.SequenceEqual(Apo.Devices))
+        {
+            if (Apo.State == ApoState.Connected) WriteToApo();
+            Changed?.Invoke();
+        }
     }
 
-    // ---------------- player ----------------
+    /// <summary>
+    /// Connects Spatia to Equalizer APO. Runs in-process when config.txt is writable (portable/test setups); otherwise
+    /// starts this exe elevated (one UAC prompt) with --apo-connect &lt;your SID&gt;. Returns false if it didn't work.
+    /// </summary>
+    public async Task<bool> ConnectApoAsync() => await RunApoCommandAsync(connect: true);
 
-    public FormatVerdict OpenFile(string path)
+    public async Task<bool> DisconnectApoAsync() => await RunApoCommandAsync(connect: false);
+
+    private async Task<bool> RunApoCommandAsync(bool connect)
     {
-        LastError = null;
-        var v = Player.Open(path);
+        ApoError = null;
+        var status = ApoLocator.Detect();
+        if (status.ConfigDir is null) { RefreshApo(); return false; }
+        var ok = false;
+        try
+        {
+            if (!status.NeedsElevation)
+            {
+                if (connect) ApoInstaller.Connect(status.ConfigDir, null); else ApoInstaller.Disconnect(status.ConfigDir);
+                ok = true;
+            }
+            else
+            {
+                var sid = System.Security.Principal.WindowsIdentity.GetCurrent().User?.Value;
+                var args = connect ? $"{ApoCommandLine.ConnectArg} {sid}" : ApoCommandLine.DisconnectArg;
+                ok = await Task.Run(() => RunElevated(args)) == 0;
+            }
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            AppLog.Error("apo connect", e);
+            ApoError = e.Message;
+        }
+        if (!connect && ok && _writer is not null) { _writer.Dispose(); _writer = null; _writerDir = null; }
+        Apo = ApoLocator.Detect();
+        if (Apo.State == ApoState.Connected) WriteToApo();
         Changed?.Invoke();
-        return v;
+        return ok && (Apo.State == ApoState.Connected) == connect;
     }
 
-    public void PlaySample()
+    /// <summary>Starts Spatia.exe elevated with <paramref name="args"/> and returns its exit code (1223 = UAC cancelled).</summary>
+    private static int RunElevated(string args)
     {
-        LastError = null;
-        Player.OpenSample(Engine.RenderSampleTrack(44100), 44100, UiStrings.S["SampleTitle"]);
+        var exe = System.Environment.ProcessPath ?? throw new InvalidOperationException("Cannot find Spatia.exe.");
+        var psi = new ProcessStartInfo(exe, args) { Verb = "runas", UseShellExecute = true, WorkingDirectory = AppContext.BaseDirectory };
+        try
+        {
+            using var p = Process.Start(psi) ?? throw new InvalidOperationException("Could not start the helper.");
+            p.WaitForExit();
+            return p.ExitCode;
+        }
+        catch (System.ComponentModel.Win32Exception e) when (e.NativeErrorCode == 1223) { return 1223; }
+    }
+
+    public static void OpenApoDownload() => OpenUrl(ApoLocator.DownloadUrl);
+
+    /// <summary>Opens Equalizer APO's Device Selector (it asks for administrator rights itself).</summary>
+    public bool OpenDeviceSelector()
+    {
+        if (Apo.DeviceSelectorPath is not { } path || !File.Exists(path)) return false;
+        try { using var _ = Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); return true; }
+        catch (System.ComponentModel.Win32Exception e) { AppLog.Error("device selector", e); return false; }
+    }
+
+    private static void OpenUrl(string url)
+    {
+        try { using var _ = Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+        catch (System.ComponentModel.Win32Exception e) { AppLog.Error("open url", e); }
+    }
+
+    // ---------------- test sound ----------------
+
+    public const int TestSeconds = 4;
+
+    /// <summary>
+    /// Plays ~4 s of the engine's sample music to the default device without any Spatia processing, so what you hear
+    /// is what Equalizer APO does to all apps.
+    /// </summary>
+    public void PlayTestSound()
+    {
+        const int sr = 48000;
+        if (_testClip is null)
+        {
+            var track = Engine.RenderSampleTrack(sr);
+            var frames = Math.Min(track.Length / 2, TestSeconds * sr);
+            var clip = new float[frames * 2];
+            Array.Copy(track, clip, clip.Length);
+            var fade = sr / 10;
+            for (var i = 0; i < fade && i < frames; i++)
+            {
+                var g = i / (float)fade;
+                clip[2 * (frames - 1 - i)] *= g; clip[2 * (frames - 1 - i) + 1] *= g;
+            }
+            _testClip = clip;
+        }
+        try
+        {
+            Tones.PlayClip(_testClip, sr);
+            TestSoundError = null;
+        }
+        catch (Exception e) when (e is System.Runtime.InteropServices.COMException or InvalidOperationException or NAudio.MmException)
+        {
+            // No playback device (or it is busy): say so on Home instead of failing.
+            AppLog.Info("test sound", e.GetType().Name + " 0x" + e.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture));
+            TestSoundError = e.Message;
+        }
         Changed?.Invoke();
     }
 
-    public void ClearError() { LastError = null; Changed?.Invoke(); }
-
-    public void SetSleepTimer(int minutes)
-    {
-        SleepMinutes = minutes;
-        _sleepRemainingS = minutes * 60;
-        _fadeStep = -1;
-        Player.FadeGain = 1f;
-        Changed?.Invoke();
-    }
+    public string? TestSoundError { get; private set; }
 
     private void OnSecond()
     {
-        if (_sleepRemainingS > 0 && --_sleepRemainingS == 0) _fadeStep = 15;
-        if (_fadeStep >= 0)
-        {
-            Player.FadeGain = _fadeStep / 15f;
-            if (_fadeStep-- == 0) { Player.Pause(); Player.FadeGain = 1f; SleepMinutes = 0; }
-        }
-        TrackDose();
-        Changed?.Invoke();
-    }
-
-    private void TrackDose()
-    {
-        if (!State.DoseTrackingEnabled || !Player.IsPlaying || !Profile.Safety.IsHeadphones || Player.Chain is null) return;
-        if (++_doseCounter < 10) return;
-        _doseCounter = 0;
-        var spl = DoseTracker.EstimateSpl(Volume.Fraction, Player.Chain.Meters().RmsDb);
-        var week = DoseTracker.WeekNumber(DateTimeOffset.UtcNow);
-        var base0 = State.DoseWeek == week ? State.DoseFraction : 0;
-        Save(State with { DoseWeek = week, DoseFraction = base0 + DoseTracker.DoseFraction(spl, 10) });
+        if (++_apoPoll >= 3) { _apoPoll = 0; RefreshApo(); }
     }
 
     // ---------------- imports ----------------
@@ -175,9 +257,14 @@ public sealed class AppController : IDisposable
 
     public bool ImportImpulse(byte[] wav)
     {
-        using var probe = new DspChain(48000, 2);
-        if (!probe.SetImpulse(wav)) return false;
+        using (var probe = new DspChain(48000, 2)) if (!probe.SetImpulse(wav)) return false;
         _impulse = wav;
+        try
+        {
+            Directory.CreateDirectory(SettingsStore.DefaultDirectory);
+            ApoInstaller.WriteAtomic(Path.Combine(SettingsStore.DefaultDirectory, ImpulseFile), wav);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { AppLog.Error("save impulse", e); }
         Edit(s => s with { ConvolutionEnabled = true });
         return true;
     }
@@ -185,8 +272,24 @@ public sealed class AppController : IDisposable
     public void ClearImpulse()
     {
         _impulse = null;
-        Player.Chain?.SetImpulse([]);
+        try { File.Delete(Path.Combine(SettingsStore.DefaultDirectory, ImpulseFile)); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { AppLog.Error("delete impulse", e); }
         Edit(s => s with { ConvolutionEnabled = false });
+    }
+
+    /// <summary>The impulse response imported earlier (kept next to settings.json), re-validated by the engine.</summary>
+    private static byte[]? LoadSavedImpulse()
+    {
+        try
+        {
+            var path = Path.Combine(SettingsStore.DefaultDirectory, ImpulseFile);
+            var info = new FileInfo(path);
+            if (!info.Exists || info.Length > MaxImpulseBytes) return null;
+            var wav = File.ReadAllBytes(path);
+            using var probe = new DspChain(48000, 2);
+            return probe.SetImpulse(wav) ? wav : null;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException) { return null; }
     }
 
     public void SaveHearingResult(IReadOnlyList<float> left, IReadOnlyList<float> right) =>
@@ -209,7 +312,7 @@ public sealed class AppController : IDisposable
     public void Dispose()
     {
         _tick.Stop();
-        Player.Dispose();
+        _writer?.Dispose();
         Tones.Dispose();
         Volume.Dispose();
         Devices.Dispose();

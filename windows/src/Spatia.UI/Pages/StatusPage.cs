@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Spatia.Core.Apo;
 using Spatia.Core.Native;
 using static Spatia.UI.Ui.Kit;
 
@@ -18,15 +19,13 @@ public sealed partial class StatusPage : UserControl
         {
             (s["CapWindows"], St.Available, $"Windows {os.Major}.{os.Minor} (build {os.Build})"),
             (s["CapEngine"], St.Available, s.Format("CapEngineReason", Engine.ApiVersion)),
-            (s["CapPlayer"], St.Available, s["CapPlayerReason"]),
+            (s["CapApo"], app.Apo.State switch { ApoState.Connected => St.Available, ApoState.InstalledNotConnected => St.Limited, _ => St.Unavailable },
+                s[app.Apo.State switch { ApoState.Connected => "CapApoConnected", ApoState.InstalledNotConnected => "CapApoNotConnected", _ => "CapApoMissing" }]),
             (s["CapEnvironments"], St.Available, s["CapEnvironmentsReason"]),
-            (s["CapSpatial"], St.Available, s["CapSpatialReason"]),
+            (s["CapSpatial"], St.Limited, s["CapSpatialReason"]),
             (s["CapHeadTracking"], St.Unavailable, s["HeadTrackingWindows"]),
-            (s["CapExclusive"], St.Limited, s["CapExclusiveReason"]),
-            (s["CapCodecs"], St.Available, s["CapCodecsReason"]),
-            (s["CapOpus"], St.Available, s["CapOpusReason"]),
-            (s["CapIamf"], St.Unavailable, s["CapIamfReason"]),
-            (s["CapOtherApps"], St.Unavailable, s["CapOtherAppsReason"]),
+            (s["CapDynamics"], St.Limited, s["CapDynamicsReason"]),
+            (s["CapOtherApps"], app.Apo.State == ApoState.Connected ? St.Available : St.Unavailable, s["CapOtherAppsReason"]),
             (s["CapDevices"], app.Devices.Outputs.Count > 0 ? St.Available : St.Unavailable,
                 string.Join(", ", app.Devices.Outputs.Select(o => $"{o.Name} ({s["Output_" + o.Type]})")) is { Length: > 0 } d ? d : s["CapNoDevices"]),
         };

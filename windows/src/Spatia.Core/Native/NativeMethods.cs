@@ -30,4 +30,7 @@ internal static unsafe partial class NativeMethods
     [LibraryImport(Lib, EntryPoint = "spatia_active_output")] internal static partial int ActiveOutput(int connectedMask, int overrideType);
     [LibraryImport(Lib, EntryPoint = "spatia_parse_autoeq")] internal static partial nint ParseAutoEq(byte* bytes, int len);
     [LibraryImport(Lib, EntryPoint = "spatia_sample_track_render")] internal static partial nint SampleTrackRender(int sampleRate, int* framesOut);
+
+    [LibraryImport(Lib, EntryPoint = "spatia_apo_plan")] internal static partial nint ApoPlan(byte* json, int output, float attenuationDb);
+    [LibraryImport(Lib, EntryPoint = "spatia_apo_render_ir")] internal static partial nint ApoRenderIr(byte* json, byte* wav, int wavLen, int* lenOut, float* headroomDbOut);
 }
