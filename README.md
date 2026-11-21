@@ -37,6 +37,15 @@ Dependencies are pinned in `gradle/libs.versions.toml` and checked against SHA-2
 
 ⚠️ **System-wide limits.** Spatia can only process apps that broadcast `ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION`. Many local music players do. Most streaming, video, game and call apps don't, and those can't be enhanced. Global session 0 is deprecated and isn't used. On devices without the DynamicsProcessing effect, Spatia falls back to the basic Equalizer with no boost, because there's no limiter. The system-wide service has to be started from the app; it doesn't start on boot, which avoids an extra permission.
 
+## Sample track
+
+Tap **Play sample** on the Player tab to hear every feature without your own files. It's an original 24-second loop made by Spatia:
+
+- 0–8 s: groove. Try the modes, EQ, bass and treble.
+- 8–14 s: voice-like melody. Try Podcast/Voice, Voice clarity and Night.
+- 14–20 s: claps separated by silence. Try Hall, Cinema and Echoing, and listen to the gaps.
+- 20–24 s: left–right sweep. Try Width, Spatial 3D, Crossfeed and Balance.
+
 ## Environments
 
 The Sound tab's **Environment** section places the music in a space. Each one is a parallel send effect: the original audio passes through unchanged at full level, and the room is added on top. The rooms use pre-delay, early reflections, an 8-line feedback delay network and, for some spaces, a ping-pong echo. The effect is band-limited so it never muddies the bass.

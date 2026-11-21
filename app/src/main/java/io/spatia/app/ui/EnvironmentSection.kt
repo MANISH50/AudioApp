@@ -57,7 +57,13 @@ private val envUi = mapOf(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun EnvironmentSection(environment: Environment, intensity: Float, onEnvironment: (Environment) -> Unit, onIntensity: (Float) -> Unit) {
+fun EnvironmentSection(
+    environment: Environment,
+    intensity: Float,
+    onEnvironment: (Environment) -> Unit,
+    onIntensity: (Float) -> Unit,
+    onTrySample: () -> Unit,
+) {
     Section(stringResource(R.string.env_title)) {
         Text(stringResource(R.string.env_help), style = MaterialTheme.typography.bodySmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -91,10 +97,13 @@ fun EnvironmentSection(environment: Environment, intensity: Float, onEnvironment
             Text(default, style = MaterialTheme.typography.labelSmall)
             Text(intense, style = MaterialTheme.typography.labelSmall)
         }
-        OutlinedButton(
-            onClick = { onIntensity(EnvironmentPreset.DEFAULT_INTENSITY) },
-            enabled = !off && abs(intensity - EnvironmentPreset.DEFAULT_INTENSITY) > 0.01f,
-        ) { Text(stringResource(R.string.env_reset)) }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
+                onClick = { onIntensity(EnvironmentPreset.DEFAULT_INTENSITY) },
+                enabled = !off && abs(intensity - EnvironmentPreset.DEFAULT_INTENSITY) > 0.01f,
+            ) { Text(stringResource(R.string.env_reset)) }
+            OutlinedButton(onClick = onTrySample) { Text(stringResource(R.string.sample_try)) }
+        }
         Text(stringResource(R.string.env_player_only), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
     }

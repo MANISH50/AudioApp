@@ -44,6 +44,7 @@ fun PlayerScreen(vm: MainViewModel, modifier: Modifier = Modifier) {
     val cfg by vm.config.collectAsStateWithLifecycle()
     val sleep by vm.sleepRemainingS.collectAsStateWithLifecycle()
     val sleepMinutes by vm.sleepMinutes.collectAsStateWithLifecycle()
+    val samplePlaying by vm.samplePlaying.collectAsStateWithLifecycle()
     // Storage Access Framework: no storage permission needed, access is limited to the picked file (scoped storage).
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(vm::openFile) }
 
@@ -53,6 +54,9 @@ fun PlayerScreen(vm: MainViewModel, modifier: Modifier = Modifier) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = { picker.launch(arrayOf("audio/*", "application/ogg", "application/octet-stream")) }) {
                     Text(stringResource(R.string.player_open))
+                }
+                androidx.compose.material3.OutlinedButton(onClick = { vm.playSample() }) {
+                    Text(stringResource(R.string.sample_play))
                 }
                 FilledIconButton(onClick = vm::playPause, enabled = player.title != null) {
                     Icon(
@@ -70,7 +74,20 @@ fun PlayerScreen(vm: MainViewModel, modifier: Modifier = Modifier) {
                 )
                 Text("${fmt(player.positionMs)} / ${fmt(player.durationMs)}", style = MaterialTheme.typography.bodySmall)
             }
-            Text(stringResource(R.string.player_formats), style = MaterialTheme.typography.bodySmall)
+            if (samplePlaying) {
+                val sec = player.positionMs / 1000.0
+                val now = when {
+                    sec < io.spatia.dsp.sample.SampleTrack.VOICE_START_S -> R.string.sample_section_groove
+                    sec < io.spatia.dsp.sample.SampleTrack.HITS_START_S -> R.string.sample_section_voice
+                    sec < io.spatia.dsp.sample.SampleTrack.PAN_START_S -> R.string.sample_section_hits
+                    else -> R.string.sample_section_sweep
+                }
+                Text(stringResource(R.string.sample_now, stringResource(now)), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.sample_guide), style = MaterialTheme.typography.bodySmall)
+            } else {
+                Text(stringResource(R.string.player_formats), style = MaterialTheme.typography.bodySmall)
+            }
         }
 
         player.error?.let { err ->

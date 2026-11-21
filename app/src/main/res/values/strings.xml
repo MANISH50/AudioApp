@@ -32,6 +32,16 @@
     <string name="error_file_access">Spatia can\'t open the file anymore. Pick it again.</string>
     <string name="error_generic">Playback failed.</string>
 
+    <string name="sample_play">Play sample</string>
+    <string name="sample_try">Try with sample</string>
+    <string name="sample_title">Spatia sample track</string>
+    <string name="sample_failed">Couldn\'t create the sample track.</string>
+    <string name="sample_now">Now: %1$s</string>
+    <string name="sample_section_groove">Groove (0–8 s). Try modes, EQ, bass and treble.</string>
+    <string name="sample_section_voice">Voice (8–14 s). Try Podcast/Voice, Voice clarity and Night.</string>
+    <string name="sample_section_hits">Claps with silence (14–20 s). Try Hall, Cinema and Echoing, and listen to the gaps.</string>
+    <string name="sample_section_sweep">Left–right sweep (20–24 s). Try Width, Spatial 3D, Crossfeed and Balance.</string>
+    <string name="sample_guide">An original 24-second track made by Spatia. It loops, so keep changing settings while it plays.</string>
     <string name="compare_title">A/B compare</string>
     <string name="compare_bypass">Bypass processing</string>
     <string name="compare_bypass_help">Hear the original at matched loudness, so louder doesn\'t just sound better.</string>

@@ -78,6 +78,7 @@ fun SoundScreen(vm: MainViewModel, modifier: Modifier = Modifier) {
             intensity = s.environmentIntensity,
             onEnvironment = { e -> vm.edit { it.copy(environment = e) } },
             onIntensity = { v -> vm.edit { it.copy(environmentIntensity = v) } },
+            onTrySample = { vm.playSample() },
         )
 
         Section(stringResource(R.string.spatial_title)) {

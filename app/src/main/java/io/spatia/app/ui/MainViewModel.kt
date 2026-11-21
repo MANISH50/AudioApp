@@ -142,7 +142,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .setMediaMetadata(MediaMetadata.Builder().setTitle(name ?: ctx.getString(R.string.player_untitled)).build())
             .build()
         _player.value = PlayerUi(title = name)
-        controller?.run { setMediaItem(item); prepare(); play() }
+        controller?.run { repeatMode = Player.REPEAT_MODE_OFF; setMediaItem(item); prepare(); play() }
+        _samplePlaying.value = false
+    }
+
+    private val _samplePlaying = MutableStateFlow(false)
+    /** True while the built-in sample track is loaded, so the UI can show what each section demonstrates. */
+    val samplePlaying: StateFlow<Boolean> = _samplePlaying
+
+    /** Plays Spatia's synthesised sample on loop, so modes and environments can be switched while listening. */
+    fun playSample() = viewModelScope.launch {
+        val ctx = getApplication<Application>()
+        val file = runCatching { io.spatia.app.player.SampleTrackFile.get(ctx) }.getOrElse {
+            message.value = R.string.sample_failed to null; return@launch
+        }
+        val title = ctx.getString(R.string.sample_title)
+        val item = MediaItem.Builder().setUri(Uri.fromFile(file))
+            .setMediaMetadata(MediaMetadata.Builder().setTitle(title).build()).build()
+        _player.value = PlayerUi(title = title)
+        controller?.run { repeatMode = Player.REPEAT_MODE_ONE; setMediaItem(item); prepare(); play() }
+        _samplePlaying.value = true
     }
 
     private fun displayName(uri: Uri): String? = runCatching {

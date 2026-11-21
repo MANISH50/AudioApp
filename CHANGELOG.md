@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+- **Built-in sample track** (Player tab → "Play sample", or "Try with sample" under Environment). It's an original 24-second track synthesised by Spatia: a groove, a voice-like melody, claps separated by silence, and a left–right sweep. It loops, and the Player tab shows which settings suit the section playing now.
+- Generated once into the app's private cache. No extra permissions, nothing added to the APK, nothing to license.
+- New automated tests run the sample through the real player processor. They confirm every environment fills the silent gaps, the intensity meter orders subtle < default < intense, and every mode sounds different.
+
 ## 0.3.0
 - Fix the gap reported in testing: modes and environments had no audible effect on Apple Music and other apps, with no explanation.
 - **Apps → "What's happening now"** card: detects that another app is playing and says whether, and why, Spatia isn't processing it, with step-by-step fixes. The Sound tab shows a warning banner in the same situation.

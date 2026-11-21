@@ -102,4 +102,67 @@ class ProcessorEndToEndTest {
         val voice = runThrough(Presets.forMode(Mode.VOICE))
         assertFalse(music.contentEquals(voice))
     }
+
+    // ---- The built-in sample track through the real processor ----
+
+    private val sample = io.spatia.dsp.sample.SampleTrack.render(sr)
+
+    private fun runSample(settings: SoundSettings): ShortArray {
+        val host = Host(settings)
+        val p = SpatiaAudioProcessor(host)
+        p.configure(AudioProcessor.AudioFormat(sr, 2, C.ENCODING_PCM_16BIT))
+        p.flush()
+        val n = sample[0].size
+        val out = ShortArray(n * 2)
+        var w = 0
+        var f = 0
+        while (f < n) {
+            val frames = minOf(2048, n - f)
+            val bb = ByteBuffer.allocateDirect(frames * 4).order(ByteOrder.nativeOrder())
+            for (i in f until f + frames) {
+                bb.putShort((sample[0][i] * 32767).toInt().toShort()); bb.putShort((sample[1][i] * 32767).toInt().toShort())
+            }
+            bb.flip()
+            p.queueInput(bb)
+            val o = p.output.order(ByteOrder.nativeOrder())
+            while (o.hasRemaining()) out[w++] = o.short
+            f += frames
+        }
+        return out
+    }
+
+    /** Energy in the silent gaps of the sample's claps section (skipping 20 ms of limiter latency). */
+    private fun sampleGapEnergy(x: ShortArray): Double {
+        val hits = io.spatia.dsp.sample.SampleTrack.HIT_TIMES_S
+        val len = io.spatia.dsp.sample.SampleTrack.HIT_LENGTH_S
+        var e = 0.0
+        for (k in 0 until hits.size - 1) {
+            val a = ((hits[k] + len + 0.02) * sr).toInt(); val b = (hits[k + 1] * sr).toInt()
+            for (i in a until b) e += x[2 * i].toDouble() * x[2 * i] + x[2 * i + 1].toDouble() * x[2 * i + 1]
+        }
+        return e
+    }
+
+    @Test fun sampleTrackGapsAreSilentWithoutEnvironment() {
+        assertEquals(0.0, sampleGapEnergy(runSample(SoundSettings())), 0.0)
+    }
+
+    @Test fun everyEnvironmentFillsTheSampleGaps() {
+        for (env in Environment.entries.filter { it != Environment.OFF }) {
+            val e = sampleGapEnergy(runSample(SoundSettings(environment = env)))
+            assertTrue("$env should be audible in the gaps (energy $e)", e > 1e6)
+        }
+    }
+
+    @Test fun intensityMeterChangesTheSampleTail() {
+        val subtle = sampleGapEnergy(runSample(SoundSettings(environment = Environment.HALL, environmentIntensity = 0.25f)))
+        val default = sampleGapEnergy(runSample(SoundSettings(environment = Environment.HALL)))
+        val intense = sampleGapEnergy(runSample(SoundSettings(environment = Environment.HALL, environmentIntensity = 1f)))
+        assertTrue("$subtle < $default < $intense", subtle < default && default < intense)
+    }
+
+    @Test fun everyModeSoundsDifferentOnTheSample() {
+        val outputs = Mode.entries.filter { it != Mode.CUSTOM }.map { runSample(Presets.forMode(it)) }
+        for (i in outputs.indices) for (j in i + 1 until outputs.size) assertFalse(outputs[i].contentEquals(outputs[j]))
+    }
 }
