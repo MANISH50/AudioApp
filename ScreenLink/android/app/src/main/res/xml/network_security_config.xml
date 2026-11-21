@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- No plain-text traffic. ScreenLink's own connection is TLS with certificate pinning (see SecureChannel.kt);
+     no system or user-installed CA is trusted for it. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

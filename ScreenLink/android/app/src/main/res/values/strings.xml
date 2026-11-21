@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ScreenLink</string>
+
+    <string name="tab_laptop">Laptop</string>
+    <string name="tab_cast">Cast</string>
+    <string name="tab_keyboard">Keyboard</string>
+
+    <string name="section_status">Connection</string>
+    <string name="section_found">Laptops on this Wi-Fi</string>
+    <string name="section_paired">Paired laptops</string>
+    <string name="section_manual">Connect by address</string>
+    <string name="section_cast">Cast your screen</string>
+    <string name="section_quality">Quality</string>
+    <string name="section_modifiers">Modifier keys</string>
+    <string name="section_keys">Keys</string>
+    <string name="section_shortcuts">Shortcuts</string>
+
+    <string name="status_idle">Not connected.</string>
+    <string name="status_connecting">Connecting to %1$s…</string>
+    <string name="status_confirm">Compare the pairing code.</string>
+    <string name="status_waiting">Waiting for %1$s. Click Allow on the laptop if it shows the code %2$s.</string>
+    <string name="status_connected">Connected to %1$s.</string>
+    <string name="fail_unreachable">Couldn\'t reach the laptop. Check that ScreenLink is open on it, both devices are on the same Wi-Fi, and the laptop allows ScreenLink through its firewall.</string>
+    <string name="fail_identity">This laptop\'s identity has changed, so ScreenLink stopped for your safety. If you reinstalled ScreenLink on the laptop, forget it here and pair again.</string>
+    <string name="fail_rejected">The laptop declined the connection.</string>
+    <string name="fail_timeout">Pairing timed out. Try again.</string>
+    <string name="fail_lost">The connection was lost.</string>
+    <string name="fail_incompatible">The laptop runs a different version of ScreenLink. Update both apps.</string>
+    <string name="fail_closed">ScreenLink was closed on the laptop.</string>
+    <string name="need_connection">Connect to a laptop first (Laptop tab).</string>
+
+    <string name="pair_title">Pair with %1$s?</string>
+    <string name="pair_body">Check that the laptop shows exactly this code. Only continue if it matches.</string>
+    <string name="pair_match">Codes match</string>
+    <string name="pair_no_match">They don\'t match</string>
+
+    <string name="scan">Search</string>
+    <string name="none_found">No laptops found. Open ScreenLink on your laptop, or enter its address below.</string>
+    <string name="paired_at">Paired · %1$s</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="forget">Forget</string>
+    <string name="manual_help">The address is shown in ScreenLink on the laptop.</string>
+    <string name="manual_label">Laptop address (e.g. 192.168.1.20)</string>
+    <string name="manual_invalid">That isn\'t a valid address.</string>
+    <string name="laptop_help">Your phone and laptop must be on the same Wi-Fi network. Everything is encrypted and stays on your network.</string>
+
+    <string name="cast_on">Your screen is being shown on the laptop.</string>
+    <string name="cast_off">Not casting.</string>
+    <string name="cast_start">Start casting</string>
+    <string name="cast_stop">Stop casting</string>
+    <string name="cast_error">Casting stopped because of a problem. Try again.</string>
+    <string name="cast_help">Android asks for your permission each time. Apps that protect their content (banking, some video apps) appear black. Sound stays on the phone.</string>
+    <string name="quality_standard">Standard (720p, smoother on busy Wi-Fi)</string>
+    <string name="quality_high">High (1080p)</string>
+
+    <string name="keyboard_help">Type here with your phone\'s keyboard and the text appears on the laptop wherever its cursor is.</string>
+    <string name="keyboard_field">Type to the laptop</string>
+    <string name="modifiers_help">Tap a modifier, then a key or letter, for shortcuts like Ctrl+S.</string>
+    <string name="key_backspace">Backspace</string>
+    <string name="key_left">Left arrow</string>
+    <string name="key_right">Right arrow</string>
+    <string name="key_up">Up arrow</string>
+    <string name="key_down">Down arrow</string>
+    <string name="sc_copy">Copy</string>
+    <string name="sc_paste">Paste</string>
+    <string name="sc_cut">Cut</string>
+    <string name="sc_undo">Undo</string>
+    <string name="sc_select_all">Select all</string>
+    <string name="sc_switch">Switch app</string>
+
+    <string name="notif_channel">Screen casting</string>
+    <string name="notif_title">ScreenLink is casting your screen</string>
+    <string name="notif_text">Everything on your screen is visible on the laptop.</string>
+</resources>
