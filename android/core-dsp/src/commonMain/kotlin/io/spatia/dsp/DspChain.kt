@@ -38,10 +38,10 @@ class DspChain(val sampleRate: Int, val inChannels: Int) {
         val volumeAttenuationDb: Float,
     )
 
-    @Volatile private var pending = Params(SoundSettings(), OutputType.SPEAKER, 0f)
-    @Volatile private var headYawRad = 0.0
-    @Volatile private var pendingConvolver: Convolver? = null
-    @Volatile private var convolverChanged = false
+    @kotlin.concurrent.Volatile private var pending = Params(SoundSettings(), OutputType.SPEAKER, 0f)
+    @kotlin.concurrent.Volatile private var headYawRad = 0.0
+    @kotlin.concurrent.Volatile private var pendingConvolver: Convolver? = null
+    @kotlin.concurrent.Volatile private var convolverChanged = false
 
     // ---- audio-thread state ----
     private var cur = SoundSettings()
@@ -246,16 +246,16 @@ class DspChain(val sampleRate: Int, val inChannels: Int) {
                 for (c in 0 until inChannels) speakers[c][f] = if (c == 3) input[b + c] * 0.5f else input[b + c]
             }
         } else {
-            val spread = Math.toRadians(10.0 + 35.0 * s.width)
+            val spread = toRadians(10.0 + 35.0 * s.width)
             if (s.surroundUpmix) {
                 upmixer.process(dry, n, speakers)
-                base = doubleArrayOf(-spread, spread, 0.0, Math.toRadians(-110.0), Math.toRadians(110.0))
+                base = doubleArrayOf(-spread, spread, 0.0, toRadians(-110.0), toRadians(110.0))
             } else {
                 for (f in 0 until n) {
                     speakers[0][f] = dry[2 * f]; speakers[1][f] = dry[2 * f + 1]
                     speakers[2][f] = 0f; speakers[3][f] = 0f; speakers[4][f] = 0f
                 }
-                base = doubleArrayOf(-spread, spread, 0.0, Math.toRadians(-110.0), Math.toRadians(110.0))
+                base = doubleArrayOf(-spread, spread, 0.0, toRadians(-110.0), toRadians(110.0))
             }
         }
         // Turning the head right moves the virtual sources left relative to the head.
@@ -269,7 +269,7 @@ class DspChain(val sampleRate: Int, val inChannels: Int) {
         private const val DB_STEP = 0.2f
         private const val UNIT_STEP = 0.02f
         val SUPPORTED_CHANNELS = setOf(1, 2, 6, 8)
-        private val SURROUND_51 = doubleArrayOf(-30.0, 30.0, 0.0, 0.0, -110.0, 110.0).map { Math.toRadians(it) }.toDoubleArray()
-        private val SURROUND_71 = doubleArrayOf(-30.0, 30.0, 0.0, 0.0, -150.0, 150.0, -90.0, 90.0).map { Math.toRadians(it) }.toDoubleArray()
+        private val SURROUND_51 = doubleArrayOf(-30.0, 30.0, 0.0, 0.0, -110.0, 110.0).map { toRadians(it) }.toDoubleArray()
+        private val SURROUND_71 = doubleArrayOf(-30.0, 30.0, 0.0, 0.0, -150.0, 150.0, -90.0, 90.0).map { toRadians(it) }.toDoubleArray()
     }
 }

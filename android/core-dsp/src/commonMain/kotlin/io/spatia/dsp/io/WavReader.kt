@@ -1,7 +1,5 @@
 package io.spatia.dsp.io
 
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 /**
  * Minimal, defensive RIFF/WAVE reader for impulse responses: PCM 16/24/32-bit or IEEE float 32-bit,
@@ -18,25 +16,25 @@ object WavReader {
     fun read(bytes: ByteArray): Wav {
         if (bytes.size > MAX_BYTES) throw WavException("Impulse response file is too large")
         if (bytes.size < 44) throw WavException("File too small to be a WAV")
-        val bb = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
-        if (String(bytes, 0, 4, Charsets.US_ASCII) != "RIFF" || String(bytes, 8, 4, Charsets.US_ASCII) != "WAVE") {
+        val le = LittleEndian
+        if (le.ascii(bytes, 0, 4) != "RIFF" || le.ascii(bytes, 8, 4) != "WAVE") {
             throw WavException("Not a RIFF/WAVE file")
         }
         var pos = 12
         var format = -1; var channels = 0; var rate = 0; var bits = 0
         var dataOff = -1; var dataLen = 0
         while (pos + 8 <= bytes.size) {
-            val id = String(bytes, pos, 4, Charsets.US_ASCII)
-            val len = bb.getInt(pos + 4)
+            val id = le.ascii(bytes, pos, 4)
+            val len = le.i32(bytes, pos + 4)
             if (len < 0 || pos + 8L + len > bytes.size) throw WavException("Corrupt chunk '$id'")
             when (id) {
                 "fmt " -> {
                     if (len < 16) throw WavException("Corrupt fmt chunk")
-                    format = bb.getShort(pos + 8).toInt() and 0xFFFF
-                    channels = bb.getShort(pos + 10).toInt()
-                    rate = bb.getInt(pos + 12)
-                    bits = bb.getShort(pos + 22).toInt()
-                    if (format == 0xFFFE && len >= 26) format = bb.getShort(pos + 32).toInt() and 0xFFFF
+                    format = le.u16(bytes, pos + 8)
+                    channels = le.i16(bytes, pos + 10)
+                    rate = le.i32(bytes, pos + 12)
+                    bits = le.i16(bytes, pos + 22)
+                    if (format == 0xFFFE && len >= 26) format = le.u16(bytes, pos + 32)
                 }
                 "data" -> { dataOff = pos + 8; dataLen = len }
             }
@@ -57,10 +55,10 @@ object WavReader {
         var p = dataOff
         for (f in 0 until frames) for (c in 0 until channels) {
             out[c][f] = when {
-                isFloat -> bb.getFloat(p).let { if (it.isFinite()) it.coerceIn(-4f, 4f) else 0f }
-                bits == 16 -> bb.getShort(p) / 32768f
+                isFloat -> le.f32(bytes, p).let { if (it.isFinite()) it.coerceIn(-4f, 4f) else 0f }
+                bits == 16 -> le.i16(bytes, p) / 32768f
                 bits == 24 -> ((bytes[p].toInt() and 0xFF) or ((bytes[p + 1].toInt() and 0xFF) shl 8) or (bytes[p + 2].toInt() shl 16)) / 8388608f
-                else -> (bb.getInt(p) / 2147483648.0).toFloat()
+                else -> (le.i32(bytes, p) / 2147483648.0).toFloat()
             }
             p += bytesPer
         }

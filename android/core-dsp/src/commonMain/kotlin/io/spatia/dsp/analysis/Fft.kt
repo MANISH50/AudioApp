@@ -10,8 +10,12 @@ class Fft(val size: Int) {
     private val cosT = DoubleArray(size / 2) { cos(2 * PI * it / size) }
     private val sinT = DoubleArray(size / 2) { -sin(2 * PI * it / size) }
     private val rev = IntArray(size).also { r ->
-        val bits = Integer.numberOfTrailingZeros(size)
-        for (i in 0 until size) r[i] = Integer.reverse(i) ushr (32 - bits)
+        val bits = size.countTrailingZeroBits()
+        for (i in 0 until size) {
+            var x = i; var y = 0
+            repeat(bits) { y = (y shl 1) or (x and 1); x = x shr 1 }
+            r[i] = y
+        }
     }
 
     fun transform(re: DoubleArray, im: DoubleArray, inverse: Boolean = false) {

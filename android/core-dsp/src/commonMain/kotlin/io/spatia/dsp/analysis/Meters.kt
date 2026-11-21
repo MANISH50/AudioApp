@@ -4,6 +4,7 @@ import io.spatia.dsp.Db
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.PI
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 /** Peak / RMS meter plus a coarse log-spaced spectrum, computed from the processed output (no RECORD_AUDIO). */
@@ -12,8 +13,8 @@ class Meters(private val sampleRate: Int, fftSize: Int = 1024) {
     private val ring = FloatArray(fftSize)
     private var ringPos = 0
     private val window = DoubleArray(fftSize) { 0.5 - 0.5 * cos(2 * PI * it / (fftSize - 1)) }
-    @Volatile var peakDb = Db.SILENCE_DB; private set
-    @Volatile var rmsDb = Db.SILENCE_DB; private set
+    @kotlin.concurrent.Volatile var peakDb = Db.SILENCE_DB; private set
+    @kotlin.concurrent.Volatile var rmsDb = Db.SILENCE_DB; private set
 
     fun push(buf: FloatArray, frames: Int, channels: Int) {
         var peak = 0f; var sum = 0.0
@@ -37,8 +38,8 @@ class Meters(private val sampleRate: Int, fftSize: Int = 1024) {
         val out = FloatArray(bands)
         val nyq = sampleRate / 2.0
         for (b in 0 until bands) {
-            val lo = 20.0 * Math.pow(nyq / 20.0, b.toDouble() / bands)
-            val hi = 20.0 * Math.pow(nyq / 20.0, (b + 1.0) / bands)
+            val lo = 20.0 * (nyq / 20.0).pow(b.toDouble() / bands)
+            val hi = 20.0 * (nyq / 20.0).pow((b + 1.0) / bands)
             val k0 = (lo / nyq * n / 2).toInt().coerceIn(1, n / 2 - 1)
             val k1 = (hi / nyq * n / 2).toInt().coerceIn(k0 + 1, n / 2)
             var e = 0.0

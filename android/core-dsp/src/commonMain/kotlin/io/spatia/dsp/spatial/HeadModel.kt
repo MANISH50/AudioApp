@@ -26,7 +26,7 @@ object HeadModel {
 
     /** Shadow-filter alpha for angle [thetaRad] between source and the ear axis (0 = facing that ear). */
     fun alpha(thetaRad: Double): Double {
-        val deg = Math.toDegrees(abs(thetaRad)).coerceIn(0.0, 180.0)
+        val deg = io.spatia.dsp.toDegrees(abs(thetaRad)).coerceIn(0.0, 180.0)
         return (1 + ALPHA_MIN / 2) + (1 - ALPHA_MIN / 2) * cos(deg / THETA_MIN_DEG * PI)
     }
 

@@ -30,7 +30,7 @@ object ParametricEqParser {
 
     fun parse(bytes: ByteArray): Result {
         if (bytes.size > MAX_BYTES) throw ParseException("File is larger than ${MAX_BYTES / 1024} KB")
-        val text = bytes.toString(Charsets.UTF_8).removePrefix("﻿")
+        val text = bytes.decodeToString().removePrefix("﻿")
         if (text.any { it == '\u0000' }) throw ParseException("Not a text file")
         return parse(text)
     }
