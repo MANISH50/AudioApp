@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English strings. To localise, copy to Strings/<culture>/Resources.resw, translate the values, and add an
+     EmbeddedResource line for it in Spatia.App.csproj. Keep {0}-style placeholders. -->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>Spatia</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>Something went wrong</value></data>
+  <data name="EngineMissingTitle" xml:space="preserve"><value>Spatia's audio engine is missing</value></data>
+  <data name="EngineMissing" xml:space="preserve"><value>spatia_dsp.dll wasn't found next to Spatia.exe. Extract the whole zip into one folder and run Spatia.exe from there.</value></data>
+  <data name="EngineVersionMismatch" xml:space="preserve"><value>This copy of spatia_dsp.dll (API {0}) doesn't match this version of Spatia (API {1}). Download the full package again.</value></data>
+  <data name="NavPlayer" xml:space="preserve"><value>Player</value></data>
+  <data name="NavSound" xml:space="preserve"><value>Sound</value></data>
+  <data name="NavOutput" xml:space="preserve"><value>Output</value></data>
+  <data name="NavOtherApps" xml:space="preserve"><value>Other apps</value></data>
+  <data name="NavStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="NowPlaying" xml:space="preserve"><value>Now playing</value></data>
+  <data name="NothingLoaded" xml:space="preserve"><value>Nothing loaded</value></data>
+  <data name="OpenFile" xml:space="preserve"><value>Open file</value></data>
+  <data name="PlaySample" xml:space="preserve"><value>Play sample</value></data>
+  <data name="Play" xml:space="preserve"><value>Play</value></data>
+  <data name="Pause" xml:space="preserve"><value>Pause</value></data>
+  <data name="PlaybackPosition" xml:space="preserve"><value>Playback position</value></data>
+  <data name="PlayerFormats" xml:space="preserve"><value>Plays FLAC, MP3, AAC/M4A, WAV and Opus. IAMF isn't supported on Windows yet.</value></data>
+  <data name="CannotPlay" xml:space="preserve"><value>This file can't be played</value></data>
+  <data name="Format_IamfUnsupported" xml:space="preserve"><value>IAMF immersive audio isn't supported on Windows yet: Windows has no IAMF decoder. Play it on Android 16 or later, or convert it.</value></data>
+  <data name="Format_KnownUnsupported" xml:space="preserve"><value>This format isn't supported. Supported formats: FLAC, MP3, AAC/M4A, WAV and Opus.</value></data>
+  <data name="Format_NotAudio" xml:space="preserve"><value>This doesn't look like an audio file.</value></data>
+  <data name="Format_Unknown" xml:space="preserve"><value>Unrecognised file type. Supported formats: FLAC, MP3, AAC/M4A, WAV and Opus.</value></data>
+  <data name="Format_Supported" xml:space="preserve"><value></value></data>
+  <data name="Format_OpusDecoder" xml:space="preserve"><value></value></data>
+  <data name="PlayerError_Decoder" xml:space="preserve"><value>Windows couldn't decode this file. It may be damaged, or its codec isn't installed.</value></data>
+  <data name="PlayerError_Unsupported" xml:space="preserve"><value>This file's audio layout isn't supported.</value></data>
+  <data name="PlayerError_FileAccess" xml:space="preserve"><value>Spatia can't open this file. Check that it still exists and that you can read it.</value></data>
+  <data name="PlayerError_ExclusiveRefused" xml:space="preserve"><value>Your device refused this file's exact format in exclusive mode, so Spatia switched back to processed playback.</value></data>
+  <data name="PlayerError_Device" xml:space="preserve"><value>The playback device stopped or was disconnected. Pick another output in Windows sound settings, then press Play.</value></data>
+  <data name="PlayerError_None" xml:space="preserve"><value></value></data>
+  <data name="SampleTitle" xml:space="preserve"><value>Spatia sample track</value></data>
+  <data name="SampleNow" xml:space="preserve"><value>Now: {0}</value></data>
+  <data name="SampleGroove" xml:space="preserve"><value>Groove (0–8 s). Try modes, EQ, bass and treble.</value></data>
+  <data name="SampleVoice" xml:space="preserve"><value>Voice (8–14 s). Try Podcast/Voice, Voice clarity and Night.</value></data>
+  <data name="SampleHits" xml:space="preserve"><value>Claps with silence (14–20 s). Try Hall, Cinema and Echoing, and listen to the gaps.</value></data>
+  <data name="SampleSweep" xml:space="preserve"><value>Left–right sweep (20–24 s). Try Width, Spatial 3D, Crossfeed and Balance.</value></data>
+  <data name="SampleGuide" xml:space="preserve"><value>An original 24-second track made by Spatia. It loops, so keep changing settings while it plays.</value></data>
+  <data name="ExclusiveActiveNote" xml:space="preserve"><value>Exclusive mode is on: audio goes to your device unchanged, so Spatia's effects are bypassed.</value></data>
+  <data name="CompareTitle" xml:space="preserve"><value>A/B compare</value></data>
+  <data name="BypassTitle" xml:space="preserve"><value>Bypass processing</value></data>
+  <data name="BypassHelp" xml:space="preserve"><value>Hear the original at matched loudness, so louder doesn't just sound better.</value></data>
+  <data name="MetersTitle" xml:space="preserve"><value>Meters</value></data>
+  <data name="MeterPeak" xml:space="preserve"><value>Peak {0} dBFS</value></data>
+  <data name="MeterRms" xml:space="preserve"><value>RMS {0} dBFS</value></data>
+  <data name="MeterSpectrum" xml:space="preserve"><value>Live frequency spectrum</value></data>
+  <data name="SleepTitle" xml:space="preserve"><value>Sleep timer</value></data>
+  <data name="SleepOff" xml:space="preserve"><value>Off</value></data>
+  <data name="SleepMinutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="SleepRemaining" xml:space="preserve"><value>Fades out and pauses in {0}</value></data>
+  <data name="EditingFor" xml:space="preserve"><value>Saved separately for each output. Now editing: {0}</value></data>
+  <data name="ModesTitle" xml:space="preserve"><value>Mode</value></data>
+  <data name="Mode_Music" xml:space="preserve"><value>Music</value></data>
+  <data name="Mode_Movie" xml:space="preserve"><value>Movie</value></data>
+  <data name="Mode_Gaming" xml:space="preserve"><value>Gaming</value></data>
+  <data name="Mode_Voice" xml:space="preserve"><value>Podcast / Voice</value></data>
+  <data name="Mode_Night" xml:space="preserve"><value>Night</value></data>
+  <data name="Mode_Custom" xml:space="preserve"><value>Custom</value></data>
+  <data name="EnvTitle" xml:space="preserve"><value>Environment</value></data>
+  <data name="EnvHelp" xml:space="preserve"><value>Place the music in a space. The space is added on top, so the original sound is never reduced.</value></data>
+  <data name="EnvIntensity" xml:space="preserve"><value>Effect intensity</value></data>
+  <data name="EnvSubtle" xml:space="preserve"><value>Subtle</value></data>
+  <data name="EnvDefault" xml:space="preserve"><value>Default</value></data>
+  <data name="EnvIntense" xml:space="preserve"><value>Intense</value></data>
+  <data name="EnvReset" xml:space="preserve"><value>Reset to default</value></data>
+  <data name="TryWithSample" xml:space="preserve"><value>Try with sample</value></data>
+  <data name="Env_Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Env_Hall" xml:space="preserve"><value>Hall</value></data>
+  <data name="Env_Cinema" xml:space="preserve"><value>Cinema</value></data>
+  <data name="Env_Park" xml:space="preserve"><value>Park</value></data>
+  <data name="Env_Bathroom" xml:space="preserve"><value>Bathroom</value></data>
+  <data name="Env_Echoing" xml:space="preserve"><value>Echoing</value></data>
+  <data name="Env_Cathedral" xml:space="preserve"><value>Cathedral</value></data>
+  <data name="Env_Stadium" xml:space="preserve"><value>Stadium</value></data>
+  <data name="Env_Club" xml:space="preserve"><value>Club</value></data>
+  <data name="Env_LivingRoom" xml:space="preserve"><value>Living room</value></data>
+  <data name="Env_Tunnel" xml:space="preserve"><value>Tunnel</value></data>
+  <data name="EnvDesc_Off" xml:space="preserve"><value>No room effect.</value></data>
+  <data name="EnvDesc_Hall" xml:space="preserve"><value>An empty concert hall: a short pause, then a long, warm echo from every wall.</value></data>
+  <data name="EnvDesc_Cinema" xml:space="preserve"><value>An old single-screen theatre: a vintage, slightly muffled tail and a slap back from the rear wall.</value></data>
+  <data name="EnvDesc_Park" xml:space="preserve"><value>Open air: almost no reverb, a few soft reflections from trees and one distant building.</value></data>
+  <data name="EnvDesc_Bathroom" xml:space="preserve"><value>A small tiled room: bright, dense and close.</value></data>
+  <data name="EnvDesc_Echoing" xml:space="preserve"><value>A canyon: clear echoes that bounce left and right, then fade.</value></data>
+  <data name="EnvDesc_Cathedral" xml:space="preserve"><value>A huge stone space with a very long, dark tail.</value></data>
+  <data name="EnvDesc_Stadium" xml:space="preserve"><value>An open arena: a big delayed slap and a wide, washing tail.</value></data>
+  <data name="EnvDesc_Club" xml:space="preserve"><value>A small, lively room with a short punchy tail.</value></data>
+  <data name="EnvDesc_LivingRoom" xml:space="preserve"><value>A furnished room: a subtle, natural ambience.</value></data>
+  <data name="EnvDesc_Tunnel" xml:space="preserve"><value>Hard parallel walls: a fast, ringing flutter echo.</value></data>
+  <data name="SpatialTitle" xml:space="preserve"><value>Spatial 3D</value></data>
+  <data name="SpatialEnable" xml:space="preserve"><value>Spatial audio</value></data>
+  <data name="SpatialHelp" xml:space="preserve"><value>Puts virtual speakers around your head using a head-shadow model. Works best with headphones.</value></data>
+  <data name="SpatialWidth" xml:space="preserve"><value>Width</value></data>
+  <data name="SpatialRoom" xml:space="preserve"><value>Room size</value></data>
+  <data name="SpatialUpmix" xml:space="preserve"><value>Surround upmix</value></data>
+  <data name="SpatialUpmixHelp" xml:space="preserve"><value>Turns stereo into virtual 5.0: centre plus rear ambience.</value></data>
+  <data name="HeadTracking" xml:space="preserve"><value>Head tracking</value></data>
+  <data name="HeadTrackingWindows" xml:space="preserve"><value>Not available on Windows: there's no standard Windows API for headphone head-tracking sensors.</value></data>
+  <data name="EqTitle" xml:space="preserve"><value>10-band equaliser</value></data>
+  <data name="EqReset" xml:space="preserve"><value>Reset EQ</value></data>
+  <data name="ToneTitle" xml:space="preserve"><value>Tone and dynamics</value></data>
+  <data name="ToneBass" xml:space="preserve"><value>Bass</value></data>
+  <data name="ToneTreble" xml:space="preserve"><value>Treble</value></data>
+  <data name="TonePreamp" xml:space="preserve"><value>Preamp</value></data>
+  <data name="ToneVoice" xml:space="preserve"><value>Voice clarity</value></data>
+  <data name="ToneNormalize" xml:space="preserve"><value>Loudness normalisation</value></data>
+  <data name="ToneNormalizeHelp" xml:space="preserve"><value>Evens out level differences between tracks.</value></data>
+  <data name="ToneNight" xml:space="preserve"><value>Night compression</value></data>
+  <data name="ToneNightHelp" xml:space="preserve"><value>Quiet parts get louder and loud parts quieter, for low-volume listening.</value></data>
+  <data name="ToneLoudComp" xml:space="preserve"><value>Equal-loudness compensation</value></data>
+  <data name="ToneLoudCompHelp" xml:space="preserve"><value>Restores bass and treble at low volume, following the ear's equal-loudness curves.</value></data>
+  <data name="ExtrasTitle" xml:space="preserve"><value>Output-specific</value></data>
+  <data name="Crossfeed" xml:space="preserve"><value>Headphone crossfeed</value></data>
+  <data name="CrossfeedHelp" xml:space="preserve"><value>Blends a little of each channel into the other ear, like speakers in a room. Headphones only, with spatial audio off.</value></data>
+  <data name="PsychoBass" xml:space="preserve"><value>Psychoacoustic bass</value></data>
+  <data name="PsychoBassHelp" xml:space="preserve"><value>Laptop speakers only. Adds harmonics so you hear deep bass the speakers can't physically play.</value></data>
+  <data name="CorrectionTitle" xml:space="preserve"><value>Headphone correction</value></data>
+  <data name="CorrectionHelp" xml:space="preserve"><value>Import a parametric EQ file (AutoEq or EqualizerAPO text format) to correct your headphones' frequency response.</value></data>
+  <data name="CorrectionEnable" xml:space="preserve"><value>Apply correction</value></data>
+  <data name="CorrectionNone" xml:space="preserve"><value>No correction loaded</value></data>
+  <data name="CorrectionLoaded" xml:space="preserve"><value>{0} filters, preamp {1}</value></data>
+  <data name="CorrectionImport" xml:space="preserve"><value>Import EQ file</value></data>
+  <data name="CorrectionImported" xml:space="preserve"><value>Correction imported: {0} filters.</value></data>
+  <data name="CorrectionFailed" xml:space="preserve"><value>Couldn't import the EQ file:</value></data>
+  <data name="FileTooLarge" xml:space="preserve"><value>That file is too large.</value></data>
+  <data name="IrTitle" xml:space="preserve"><value>Room impulse response</value></data>
+  <data name="IrHelp" xml:space="preserve"><value>Load a WAV impulse response (up to 2 s, mono or stereo) to place the music in a real room. It's kept in memory only.</value></data>
+  <data name="IrEnable" xml:space="preserve"><value>Use room</value></data>
+  <data name="IrMix" xml:space="preserve"><value>Room mix</value></data>
+  <data name="IrLoad" xml:space="preserve"><value>Load WAV</value></data>
+  <data name="IrRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="IrLoaded" xml:space="preserve"><value>Room impulse response loaded.</value></data>
+  <data name="IrFailed" xml:space="preserve"><value>That WAV can't be used. Use 16/24/32-bit PCM or 32-bit float, at most 2 s, mono or stereo.</value></data>
+  <data name="HearingTitle" xml:space="preserve"><value>Personal hearing profile</value></data>
+  <data name="HearingHelp" xml:space="preserve"><value>A short listening check builds a gentle compensation curve (at most +6 dB). It isn't a medical test, and the results stay on this PC.</value></data>
+  <data name="HearingEnable" xml:space="preserve"><value>Apply my hearing profile</value></data>
+  <data name="HearingStart" xml:space="preserve"><value>Start listening check</value></data>
+  <data name="HearingNeedsHeadphones" xml:space="preserve"><value>Connect headphones to start</value></data>
+  <data name="HearingInstructions" xml:space="preserve"><value>Sit somewhere quiet and set the volume to a comfortable middle level. Don't change it during the check. You'll hear quiet tones in one ear at a time. Choose "Heard it" as soon as you can hear the tone.</value></data>
+  <data name="HearingBegin" xml:space="preserve"><value>Begin</value></data>
+  <data name="HearingLeft" xml:space="preserve"><value>Left ear, {0} Hz</value></data>
+  <data name="HearingRight" xml:space="preserve"><value>Right ear, {0} Hz</value></data>
+  <data name="HearingLevel" xml:space="preserve"><value>Tone level: {0} dBFS</value></data>
+  <data name="HearingHeard" xml:space="preserve"><value>Heard it</value></data>
+  <data name="HearingLouder" xml:space="preserve"><value>Not yet, louder</value></data>
+  <data name="HearingReplay" xml:space="preserve"><value>Replay tone</value></data>
+  <data name="AccessTitle" xml:space="preserve"><value>Accessibility</value></data>
+  <data name="Mono" xml:space="preserve"><value>Mono audio</value></data>
+  <data name="Balance" xml:space="preserve"><value>Left/right balance</value></data>
+  <data name="Output_Speaker" xml:space="preserve"><value>Speakers</value></data>
+  <data name="Output_Wired" xml:space="preserve"><value>Wired headphones</value></data>
+  <data name="Output_Bluetooth" xml:space="preserve"><value>Bluetooth</value></data>
+  <data name="Output_Usb" xml:space="preserve"><value>USB audio</value></data>
+  <data name="Output_HdmiCast" xml:space="preserve"><value>HDMI / display</value></data>
+  <data name="OutputActive" xml:space="preserve"><value>Active output</value></data>
+  <data name="OutputDetected" xml:space="preserve"><value>Detected from Windows' default playback device</value></data>
+  <data name="OutputManual" xml:space="preserve"><value>Set manually</value></data>
+  <data name="OutputSafety" xml:space="preserve"><value>Safety for this output: at most {0} boost, limiter ceiling {1} dBFS, volume warning above {2}%.</value></data>
+  <data name="OutputVolume" xml:space="preserve"><value>Device volume {0}% ({1} dB below maximum)</value></data>
+  <data name="OutputConnected" xml:space="preserve"><value>Connected:</value></data>
+  <data name="OutputProfile" xml:space="preserve"><value>Output profile</value></data>
+  <data name="OutputAuto" xml:space="preserve"><value>Auto-detect</value></data>
+  <data name="OutputRemember" xml:space="preserve"><value>Remember settings per device</value></data>
+  <data name="OutputRememberHelp" xml:space="preserve"><value>Each pair of headphones keeps its own settings. Devices are recognised by type and name, never by hardware ID.</value></data>
+  <data name="ExclusiveTitle" xml:space="preserve"><value>Exclusive mode (bit-perfect)</value></data>
+  <data name="ExclusiveEnable" xml:space="preserve"><value>Exclusive mode</value></data>
+  <data name="ExclusiveHelp" xml:space="preserve"><value>Sends audio to your device unchanged, with Windows' mixer bypassed. All Spatia processing, including the limiter, is bypassed, and other apps can't play sound meanwhile. Use your device's volume carefully.</value></data>
+  <data name="DoseTitle" xml:space="preserve"><value>Listening dose</value></data>
+  <data name="DoseEnable" xml:space="preserve"><value>Track weekly listening dose</value></data>
+  <data name="DoseHelp" xml:space="preserve"><value>Estimates headphone exposure against the WHO safe-listening guideline (80 dB for 40 hours a week). It's an estimate, not a measurement, and it stays on this PC.</value></data>
+  <data name="DoseValue" xml:space="preserve"><value>This week: {0}% of the safe weekly dose</value></data>
+  <data name="VolumeWarningTitle" xml:space="preserve"><value>High volume</value></data>
+  <data name="VolumeWarningHeadphones" xml:space="preserve"><value>Listening at high volume through headphones for long periods can permanently damage your hearing.</value></data>
+  <data name="VolumeWarningSpeaker" xml:space="preserve"><value>The volume is very high. Long exposure at this level can harm your hearing.</value></data>
+  <data name="VolumeReduce" xml:space="preserve"><value>Lower volume</value></data>
+  <data name="VolumeContinue" xml:space="preserve"><value>I understand</value></data>
+  <data name="OtherWhyTitle" xml:space="preserve"><value>Why other apps aren't enhanced yet</value></data>
+  <data name="OtherWhy" xml:space="preserve"><value>Windows only lets an app change other apps' sound through a system audio driver. Spatia doesn't install drivers, so for now Modes, Environments and EQ apply to Spatia's own player.</value></data>
+  <data name="OtherNextTitle" xml:space="preserve"><value>Coming next</value></data>
+  <data name="OtherNext" xml:space="preserve"><value>System-wide mode: you install a free virtual audio device and set it as Windows' default output. Spatia then processes everything played to it and sends the result to your real speakers or headphones, using documented Windows audio APIs.</value></data>
+  <data name="OtherNowTitle" xml:space="preserve"><value>What you can do today</value></data>
+  <data name="OtherNow" xml:space="preserve"><value>Open your music files in Spatia's player, or try the built-in sample track to hear every mode and environment.</value></data>
+  <data name="StatusTitle" xml:space="preserve"><value>What this PC supports</value></data>
+  <data name="Status_Available" xml:space="preserve"><value>Available</value></data>
+  <data name="Status_Limited" xml:space="preserve"><value>Depends on device</value></data>
+  <data name="Status_Unavailable" xml:space="preserve"><value>Unavailable</value></data>
+  <data name="CapWindows" xml:space="preserve"><value>Windows version</value></data>
+  <data name="CapEngine" xml:space="preserve"><value>Spatia audio engine</value></data>
+  <data name="CapEngineReason" xml:space="preserve"><value>Shared engine loaded (API {0}), the same engine as the Android app.</value></data>
+  <data name="CapPlayer" xml:space="preserve"><value>Built-in player processing</value></data>
+  <data name="CapPlayerReason" xml:space="preserve"><value>Every sound feature works in Spatia's player.</value></data>
+  <data name="CapEnvironments" xml:space="preserve"><value>Environments (Hall, Cinema and more)</value></data>
+  <data name="CapEnvironmentsReason" xml:space="preserve"><value>Full quality in Spatia's player.</value></data>
+  <data name="CapSpatial" xml:space="preserve"><value>Spatial 3D</value></data>
+  <data name="CapSpatialReason" xml:space="preserve"><value>Spatia's own head-model renderer works on every PC.</value></data>
+  <data name="CapHeadTracking" xml:space="preserve"><value>Head tracking</value></data>
+  <data name="CapExclusive" xml:space="preserve"><value>Exclusive mode (bit-perfect)</value></data>
+  <data name="CapExclusiveReason" xml:space="preserve"><value>Works when your device accepts the file's exact format; otherwise Spatia falls back to processed playback and tells you.</value></data>
+  <data name="CapCodecs" xml:space="preserve"><value>FLAC, MP3, AAC, WAV</value></data>
+  <data name="CapCodecsReason" xml:space="preserve"><value>Decoded by Windows Media Foundation, built into Windows 10 and 11.</value></data>
+  <data name="CapOpus" xml:space="preserve"><value>Opus</value></data>
+  <data name="CapOpusReason" xml:space="preserve"><value>Decoded by Spatia's built-in Opus decoder (Concentus).</value></data>
+  <data name="CapIamf" xml:space="preserve"><value>IAMF immersive audio</value></data>
+  <data name="CapIamfReason" xml:space="preserve"><value>Windows has no IAMF decoder yet.</value></data>
+  <data name="CapOtherApps" xml:space="preserve"><value>Enhancing other apps</value></data>
+  <data name="CapOtherAppsReason" xml:space="preserve"><value>Needs a virtual audio device; coming in the next release. See Other apps.</value></data>
+  <data name="CapDevices" xml:space="preserve"><value>Output devices</value></data>
+  <data name="CapNoDevices" xml:space="preserve"><value>No active playback devices found.</value></data>
+</root>

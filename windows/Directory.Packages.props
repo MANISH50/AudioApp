@@ -1,7 +1,7 @@
 <Project>
   <!-- Every third-party package, pinned to an exact version. Update deliberately. -->
   <ItemGroup>
-    <PackageVersion Include="NAudio" Version="2.2.1" />
+    <PackageVersion Include="NAudio.Wasapi" Version="2.2.1" />
     <PackageVersion Include="Concentus" Version="2.2.2" />
     <PackageVersion Include="Concentus.OggFile" Version="1.0.6" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />

@@ -1,0 +1,182 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0-windows10.0.19041": {
+      "Microsoft.Windows.SDK.BuildTools": {
+        "type": "Direct",
+        "requested": "[10.0.26100.7705, )",
+        "resolved": "10.0.26100.7705",
+        "contentHash": "HhD3TweZMpyor2t7vRJgJrASHJDWcDjYWQB2HSqsYWvpB10K8KgkdmXLtGUoKYwoztyIV2k1vjt1DdVsYs8jWw=="
+      },
+      "Microsoft.WindowsAppSDK": {
+        "type": "Direct",
+        "requested": "[1.8.260921001, )",
+        "resolved": "1.8.260921001",
+        "contentHash": "uoES0zOM4rNsy5FMWjzGg4uDUakodMkSQbhpT59Gb4J8ONf2L1XEwcyvZC6Li9Sm8fmCUkPK/mkfYdRUpnlJqQ==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.AI": "[1.8.79]",
+          "Microsoft.WindowsAppSDK.Base": "[1.8.251216001]",
+          "Microsoft.WindowsAppSDK.DWrite": "[1.8.25122902]",
+          "Microsoft.WindowsAppSDK.Foundation": "[1.8.260803002]",
+          "Microsoft.WindowsAppSDK.InteractiveExperiences": "[1.8.260708001]",
+          "Microsoft.WindowsAppSDK.ML": "[1.8.2223]",
+          "Microsoft.WindowsAppSDK.Runtime": "[1.8.260921001]",
+          "Microsoft.WindowsAppSDK.Widgets": "[1.8.251231004]",
+          "Microsoft.WindowsAppSDK.WinUI": "[1.8.260803003]"
+        }
+      },
+      "Microsoft.Web.WebView2": {
+        "type": "Transitive",
+        "resolved": "1.0.3179.45",
+        "contentHash": "3pokSH5CnN0G6rGhGFo1y87inxYhNxBQ2Vdf0wlvBj99KHxQJormjDACmqRnFeUsmuNFIhWwfAL1ztq7wD5qRA=="
+      },
+      "Microsoft.Windows.SDK.BuildTools.MSIX": {
+        "type": "Transitive",
+        "resolved": "1.7.20250829.1",
+        "contentHash": "IMdvRmCIZnBS5GkYnv0po1bcx6U1OF39pqA4TphQ9evDzpCRoSE19/PkDvlUNNrBavTsLIEJgd/TAIFner75ow=="
+      },
+      "Microsoft.WindowsAppSDK.AI": {
+        "type": "Transitive",
+        "resolved": "1.8.79",
+        "contentHash": "28lVLUoYd51EFddxC1REA0NmbrUDYaDgWVV/jQ4Dohz2qArRhXpyYCuggfvQW0D29vWzWFdMjQgNI0qP9CwYyw==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
+          "Microsoft.WindowsAppSDK.Foundation": "1.8.260501000"
+        }
+      },
+      "Microsoft.WindowsAppSDK.Base": {
+        "type": "Transitive",
+        "resolved": "1.8.251216001",
+        "contentHash": "PS1wriuFknz3W2F2P/e6RvOTM35w89Lsj/f0QmUEPrJjKnc+jM0JLX1vfdytI14y1gNRUTm9uclwP0aH/SVU5w==",
+        "dependencies": {
+          "Microsoft.Windows.SDK.BuildTools": "10.0.26100.4654",
+          "Microsoft.Windows.SDK.BuildTools.MSIX": "1.7.20250829.1"
+        }
+      },
+      "Microsoft.WindowsAppSDK.DWrite": {
+        "type": "Transitive",
+        "resolved": "1.8.25122902",
+        "contentHash": "zFNn07i7Cyz62Y8FnPQAyzeZK7ww3m9t42i9pzy4C04pNbyUDQ4fG7pB6VSh6n4EyFuYtuFQuDzt4mKmXFrkrg==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001"
+        }
+      },
+      "Microsoft.WindowsAppSDK.Foundation": {
+        "type": "Transitive",
+        "resolved": "1.8.260803002",
+        "contentHash": "V2Mhddgyljl6jULPGbJ/J/kn6Y4D98Nckpr3Y27uK/CfbSnjcGTC6M+3aMJkyjNwoekyGAwEIRdBEYJBUCRRfA==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
+          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260708001"
+        }
+      },
+      "Microsoft.WindowsAppSDK.InteractiveExperiences": {
+        "type": "Transitive",
+        "resolved": "1.8.260708001",
+        "contentHash": "lKvL9ArPGRhzbQwXUg7Spc8dgB7N2NnMoC6BKD9sn0Mzx9FxcJC55rohV9x52eBCfviHzrn5ZtujwORZthsqbA==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001"
+        }
+      },
+      "Microsoft.WindowsAppSDK.ML": {
+        "type": "Transitive",
+        "resolved": "1.8.2223",
+        "contentHash": "enVopOqNAmV4U/6zXja3I+FeJBEzLw6L19UhFDNYEPgoPMWqNdc9evGfJQ5qYKXdjTSG6woFye65KVp26dLAmg==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
+          "Microsoft.WindowsAppSDK.Foundation": "1.8.260803002",
+          "System.Numerics.Tensors": "9.0.0"
+        }
+      },
+      "Microsoft.WindowsAppSDK.Runtime": {
+        "type": "Transitive",
+        "resolved": "1.8.260921001",
+        "contentHash": "UX0e2skKg08iM/rUqg9ax23cc0YqBT7OACm6POSqL0NCT6Y+wO43X3BHUdmJ/iEef/hTdJ/8YRizOX9IB+GREQ==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001"
+        }
+      },
+      "Microsoft.WindowsAppSDK.Widgets": {
+        "type": "Transitive",
+        "resolved": "1.8.251231004",
+        "contentHash": "bIWqQYR8DCoB1SoPOMil5AtgtkTn438wJTdpsHgyO/6o7Eh7PMP5BzrR0KbDsFqy+4LhPWQ4vtwko5k93fECcA==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001"
+        }
+      },
+      "Microsoft.WindowsAppSDK.WinUI": {
+        "type": "Transitive",
+        "resolved": "1.8.260803003",
+        "contentHash": "yQFFlQ6IQj4dpDqGvMghRUQMAYlnu+hhf1unvkf4ymtdWDww+UotPi+MPTJyDc7x+xEyBXfXnlXZVk0NG0eMrA==",
+        "dependencies": {
+          "Microsoft.Web.WebView2": "1.0.3179.45",
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
+          "Microsoft.WindowsAppSDK.Foundation": "1.8.260803002",
+          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260708001"
+        }
+      },
+      "NAudio.Core": {
+        "type": "Transitive",
+        "resolved": "2.2.1",
+        "contentHash": "GgkdP6K/7FqXFo7uHvoqGZTJvW4z8g2IffhOO4JHaLzKCdDOUEzVKtveoZkCuUX8eV2HAINqi7VFqlFndrnz/g=="
+      },
+      "System.Numerics.Tensors": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "hyJB4UlpAi19Xr9AXzu2NuagKC4lPfHObNMEAA0HmqFz2rX7wKgzeYzO/jM/eBHDhnUGFFEjk5cOoJaxqg5J4A=="
+      },
+      "spatia.audio": {
+        "type": "Project",
+        "dependencies": {
+          "Concentus": "[2.2.2, )",
+          "Concentus.OggFile": "[1.0.6, )",
+          "NAudio.Wasapi": "[2.2.1, )",
+          "Spatia.Core": "[0.1.0, )"
+        }
+      },
+      "spatia.core": {
+        "type": "Project"
+      },
+      "Concentus": {
+        "type": "CentralTransitive",
+        "requested": "[2.2.2, )",
+        "resolved": "2.2.2",
+        "contentHash": "2B9YmHPKO+k7YpAAnqmiXwiMJnfjfj1C868RszOll2iZWLnGTAiC1q21L/d7CvTan7T+hyqU8dR0Dcy3cpjVfQ=="
+      },
+      "Concentus.Oggfile": {
+        "type": "CentralTransitive",
+        "requested": "[1.0.6, )",
+        "resolved": "1.0.6",
+        "contentHash": "bDd8vP5+cmXR7D93w3LP75sJTClTb8GLOnSaLGtjb9z+wTQ//6UfNo0mtGU5Vtpgf9nYYgn7pFbPAC6isaewyw==",
+        "dependencies": {
+          "Concentus": "2.2.1"
+        }
+      },
+      "NAudio.Wasapi": {
+        "type": "CentralTransitive",
+        "requested": "[2.2.1, )",
+        "resolved": "2.2.1",
+        "contentHash": "lFfXoqacZZe0WqNChJgGYI+XV/n/61LzPHT3C1CJp4khoxeo2sziyX5wzNYWeCMNbsWxFvT3b3iXeY1UYjBhZw==",
+        "dependencies": {
+          "NAudio.Core": "2.2.1"
+        }
+      }
+    },
+    "net10.0-windows10.0.19041/win-x64": {
+      "Microsoft.Web.WebView2": {
+        "type": "Transitive",
+        "resolved": "1.0.3179.45",
+        "contentHash": "3pokSH5CnN0G6rGhGFo1y87inxYhNxBQ2Vdf0wlvBj99KHxQJormjDACmqRnFeUsmuNFIhWwfAL1ztq7wD5qRA=="
+      },
+      "Microsoft.WindowsAppSDK.Foundation": {
+        "type": "Transitive",
+        "resolved": "1.8.260803002",
+        "contentHash": "V2Mhddgyljl6jULPGbJ/J/kn6Y4D98Nckpr3Y27uK/CfbSnjcGTC6M+3aMJkyjNwoekyGAwEIRdBEYJBUCRRfA==",
+        "dependencies": {
+          "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
+          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260708001"
+        }
+      }
+    }
+  }
+}
