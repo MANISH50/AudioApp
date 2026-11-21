@@ -2,11 +2,13 @@
 
 Spatia is a spatial audio player and sound enhancer for Windows 10 (version 2004 or later) and Windows 11, x64. It's built with C#, .NET 10 and WinUI 3, on the **same audio engine as the Android app**. That engine is `android/core-dsp`, compiled by Kotlin/Native to `spatia_dsp.dll`.
 
-## Run it
+## Install
 
-1. Download `Spatia-Windows-x64.zip` from the latest successful **Windows** workflow run (GitHub → Actions → Windows → Artifacts).
-2. Extract the whole zip into a folder and run `Spatia.exe`. No installer and no administrator rights are needed. .NET and the Windows App SDK are bundled.
-3. Windows SmartScreen may warn because the app isn't code-signed yet: choose **More info → Run anyway**.
+1. Download **`Spatia-Setup-<version>-x64.exe`** from the repository's **Releases** page (tags `windows-v*`).
+2. Run it. It installs for your user account only, into `%LOCALAPPDATA%\Programs\Spatia`, with no administrator rights. It adds a Start-menu entry, plus an optional desktop shortcut. Uninstall from **Settings → Apps**; you'll be asked whether to keep your sound settings.
+3. The installer isn't code-signed yet, so Windows SmartScreen may warn: choose **More info → Run anyway**.
+
+Prefer no installer? The same release has `Spatia-Windows-x64.zip`. Extract it and run `Spatia.exe`. Every CI run also attaches both files as workflow artifacts.
 
 ## Features
 

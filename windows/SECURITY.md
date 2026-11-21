@@ -7,4 +7,5 @@
 - **Strings** load from embedded `.resw` files with DTD processing disabled (XXE-safe).
 - **Dependencies** are pinned centrally (`Directory.Packages.props`), and restore runs in locked mode (`packages.lock.json`) in CI. GitHub Actions are pinned by commit SHA. The Kotlin side uses Gradle dependency verification (SHA-256).
 - **Analyzers** run with warnings as errors.
-- **Not yet:** code signing. The zip is unsigned until a signing certificate is provided, so SmartScreen will warn on first run.
+- **Installer:** per-user (`PrivilegesRequired=lowest`), so no elevation and no system-wide changes. The uninstaller removes settings only if the user says yes.
+- **Not yet:** code signing. The installer and zip are unsigned until a signing certificate is provided, so SmartScreen will warn on first run.
