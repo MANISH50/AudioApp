@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0
+- **Spatia now changes the sound of every app** (YouTube, Netflix, Spotify, games), not just its own player. It's on by default through Android's global output mix (session 0), and announced app sessions still get their own copy.
+- **Removed the built-in player and the sample track** (no more opening files). A new **Home** tab has an On/Off switch, a **Play test sound** button, and quick mode chips.
+- **Spatial now works for all apps** through the phone's Virtualizer, with Width setting its strength. **Balance** now works for all apps too.
+- Effects ask for high priority. Each one reports *Active / Blocked by phone / Taken over / Not on this phone*, re-applies itself when it gets control back, and has a **Try again** button.
+- Phone-specific steps to turn off the built-in enhancer on Xiaomi/Redmi/POCO, OPPO/realme, OnePlus, vivo/iQOO and Samsung, plus a shortcut to the battery and Autostart settings.
+- Spatia starts again after a reboot when it was left on (`RECEIVE_BOOT_COMPLETED`).
+- Removed features that can't work on other apps' audio: room IR import, head tracking, surround upmix, crossfeed, psychoacoustic bass, loudness normalisation, mono, bit-perfect USB, meters, sleep timer. The Media3 dependency and the media-playback foreground service are gone.
+
 ## 0.4.0
 - **Built-in sample track** (Player tab → "Play sample", or "Try with sample" under Environment). It's an original 24-second track synthesised by Spatia: a groove, a voice-like melody, claps separated by silence, and a left–right sweep. It loops, and the Player tab shows which settings suit the section playing now.
 - Generated once into the app's private cache. No extra permissions, nothing added to the APK, nothing to license.

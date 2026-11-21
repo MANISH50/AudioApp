@@ -6,7 +6,7 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -34,7 +34,7 @@ import io.spatia.app.safety.VolumeGuard
 private data class Tab(val label: Int, val icon: ImageVector)
 
 private val tabs = listOf(
-    Tab(R.string.tab_player, Icons.Filled.PlayCircle),
+    Tab(R.string.tab_home, Icons.Filled.Home),
     Tab(R.string.tab_sound, Icons.Filled.Equalizer),
     Tab(R.string.tab_output, Icons.Filled.Headphones),
     Tab(R.string.tab_apps, Icons.Filled.Apps),
@@ -73,7 +73,7 @@ fun SpatiaRoot(vm: MainViewModel) {
     ) { padding ->
         val m = Modifier.padding(padding)
         when (tab) {
-            0 -> PlayerScreen(vm, m)
+            0 -> HomeScreen(vm, m)
             1 -> SoundScreen(vm, m)
             2 -> OutputScreen(vm, m)
             3 -> AppsScreen(vm, m)

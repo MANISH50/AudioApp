@@ -5,6 +5,7 @@ import android.media.audiofx.AudioEffect
 import android.media.audiofx.DynamicsProcessing
 import android.media.audiofx.EnvironmentalReverb
 import android.media.audiofx.Equalizer
+import android.media.audiofx.Virtualizer
 import android.util.Log
 import io.spatia.app.audio.AudioEngine
 import io.spatia.app.audio.EffectiveConfig
@@ -28,6 +29,20 @@ import kotlinx.coroutines.launch
 
 enum class SessionEffectKind { DYNAMICS_PROCESSING, EQUALIZER_ONLY, FAILED }
 
+/** What happened to one effect on one session, shown to the user as-is. */
+enum class EffectState {
+    /** Not needed with the current settings (e.g. Environment Off). */
+    IDLE,
+    /** Running and controlled by Spatia. */
+    ACTIVE,
+    /** The phone has no such effect. */
+    UNSUPPORTED,
+    /** The phone refused to attach it to this audio (common for the global mix on some ROMs). */
+    REFUSED,
+    /** Another app or the phone's own sound enhancer took control of it. */
+    TAKEN_OVER,
+}
+
 data class SessionInfo(
     val sessionId: Int,
     val packageName: String,
@@ -35,23 +50,32 @@ data class SessionInfo(
     /** True when an environment (Hall, Cinema...) is currently applied to this session via the platform reverb. */
     val environmentActive: Boolean = false,
     val isGlobal: Boolean = false,
+    val eq: EffectState = EffectState.IDLE,
+    val environment: EffectState = EffectState.IDLE,
+    val spatial: EffectState = EffectState.IDLE,
 )
 
 /** Target values for one session's effect, computed from the active settings. Pure data for ramping/tests. */
-data class SessionTargets(val bandGainsDb: FloatArray, val inputGainDb: Float, val limiterDb: Float, val night: Boolean) {
+data class SessionTargets(
+    val bandGainsDb: FloatArray, val inputGainDb: Float, val limiterDb: Float, val night: Boolean,
+    /** Per-channel offsets for balance (left, right), in dB, always <= 0. */
+    val balanceDb: FloatArray = FloatArray(2),
+) {
     override fun equals(other: Any?) = other is SessionTargets && bandGainsDb.contentEquals(other.bandGainsDb) &&
-        inputGainDb == other.inputGainDb && limiterDb == other.limiterDb && night == other.night
+        inputGainDb == other.inputGainDb && limiterDb == other.limiterDb && night == other.night &&
+        balanceDb.contentEquals(other.balanceDb)
     override fun hashCode() = bandGainsDb.contentHashCode() * 31 + inputGainDb.hashCode()
 }
 
 /**
- * Enhancement for other apps through the documented AudioEffect API:
- *  - sessions that their owning app announces (ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION or the effect-panel intent);
- *  - optionally the global output mix (session 0, "Global mode"). That route is deprecated by Android and works on
- *    many but not all devices, so it is opt-in.
+ * Enhancement for every app through the documented AudioEffect API:
+ *  - the global output mix (session 0, on by default). This is the only non-root way to reach apps such as YouTube
+ *    or Netflix that never announce their audio. Android deprecates it and support depends on the phone's ROM, so
+ *    every effect reports its own [EffectState] instead of pretending;
+ *  - sessions that their owning app announces (ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION or the effect-panel intent).
  * No PCM access is possible here, so Spatia's own DSP can't run. Instead: DynamicsProcessing (EQ, tone, voice,
- * loudness compensation, correction, night, limiter, per-app boost) plus the platform EnvironmentalReverb as an
- * insert effect for environments (dry signal kept, room added on top).
+ * loudness compensation, correction, night, balance, limiter, per-app boost), the platform EnvironmentalReverb as an
+ * insert effect for environments (dry signal kept, room added on top) and the platform Virtualizer for Spatial.
  */
 class SessionEffectsManager(
     private val context: Context,
@@ -66,6 +90,10 @@ class SessionEffectsManager(
         var rev: EnvironmentalReverb? = null,
         var revEnv: Environment = Environment.OFF,
         var revLevel: Int = I3dl2Params.SILENT_MB,
+        var revState: EffectState = EffectState.IDLE,
+        var virt: Virtualizer? = null,
+        var virtState: EffectState = EffectState.IDLE,
+        var eqState: EffectState = EffectState.ACTIVE,
     )
 
     private val attached = LinkedHashMap<Int, Attached>()
@@ -77,6 +105,7 @@ class SessionEffectsManager(
     val dynamicsProcessingSupported: Boolean by lazy { effectSupported(AudioEffect.EFFECT_TYPE_DYNAMICS_PROCESSING) }
     val equalizerSupported: Boolean by lazy { effectSupported(AudioEffect.EFFECT_TYPE_EQUALIZER) }
     val environmentalReverbSupported: Boolean by lazy { effectSupported(AudioEffect.EFFECT_TYPE_ENV_REVERB) }
+    val virtualizerSupported: Boolean by lazy { effectSupported(AudioEffect.EFFECT_TYPE_VIRTUALIZER) }
 
     private fun effectSupported(type: java.util.UUID) = try {
         AudioEffect.queryEffects()?.any { it.type == type } == true
@@ -95,7 +124,7 @@ class SessionEffectsManager(
     fun open(sessionId: Int, packageName: String) {
         if (sessionId <= 0) return
         val pkg = packageName.take(255).takeIf { AppState.PACKAGE_RX.matches(it) } ?: "unknown"
-        if (pkg == context.packageName) return // our own player is processed in-app
+        if (pkg == context.packageName) return
         attach(sessionId, pkg, global = false)
     }
 
@@ -109,18 +138,49 @@ class SessionEffectsManager(
         val a = try {
             if (dynamicsProcessingSupported) {
                 Attached(SessionInfo(sessionId, pkg, SessionEffectKind.DYNAMICS_PROCESSING, isGlobal = global),
-                    DynamicsProcessing(0, sessionId, buildConfig()).apply { enabled = true }, null, null)
+                    DynamicsProcessing(PRIORITY, sessionId, buildConfig()).apply { enabled = true }, null, null)
             } else if (equalizerSupported) {
                 Attached(SessionInfo(sessionId, pkg, SessionEffectKind.EQUALIZER_ONLY, isGlobal = global), null,
-                    Equalizer(0, sessionId).apply { enabled = true }, null)
+                    Equalizer(PRIORITY, sessionId).apply { enabled = true }, null)
             } else null
         } catch (e: RuntimeException) {
             Log.w(TAG, "Could not attach effect to a session")
             null
-        } ?: Attached(SessionInfo(sessionId, pkg, SessionEffectKind.FAILED, isGlobal = global), null, null, null)
+        } ?: Attached(SessionInfo(sessionId, pkg, SessionEffectKind.FAILED, isGlobal = global), null, null, null,
+            eqState = if (dynamicsProcessingSupported || equalizerSupported) EffectState.REFUSED else EffectState.UNSUPPORTED)
+        (a.dp ?: a.eq)?.let { fx ->
+            if (!fx.hasControl()) a.eqState = EffectState.TAKEN_OVER
+            watchControl(fx, sessionId) { st -> a.eqState = st }
+        }
         attached[sessionId] = a
         publish()
         applyAll(engine.config.value)
+    }
+
+    /**
+     * Follows who controls the effect. Another app (or the phone's own enhancer) with a higher priority can take it
+     * over; when control comes back, the current settings are re-applied.
+     */
+    private fun watchControl(fx: AudioEffect, sessionId: Int, set: (EffectState) -> Unit) {
+        try {
+            fx.setControlStatusListener { _, granted ->
+                scope.launch {
+                    if (attached[sessionId] == null) return@launch
+                    set(if (granted) EffectState.ACTIVE else EffectState.TAKEN_OVER)
+                    attached[sessionId]?.current = null
+                    publish()
+                    if (granted) applyAll(engine.config.value)
+                }
+            }
+        } catch (_: RuntimeException) { }
+    }
+
+    /** Drops and re-creates every effect: used by "Try again" after the user turned off the phone's own enhancer. */
+    fun reattachAll() {
+        val list = attached.values.map { it.info }
+        closeAll()
+        for (i in list) attach(i.sessionId, i.packageName, i.isGlobal)
+        syncGlobal(engine.config.value.app.globalMode && engine.config.value.app.systemWideEnabled)
     }
 
     fun close(sessionId: Int) {
@@ -136,12 +196,17 @@ class SessionEffectsManager(
     }
 
     private fun releaseQuietly(a: Attached) {
-        try { a.dp?.release(); a.eq?.release(); a.rev?.release() } catch (_: RuntimeException) { }
-        a.rev = null
+        try { a.dp?.release(); a.eq?.release(); a.rev?.release(); a.virt?.release() } catch (_: RuntimeException) { }
+        a.rev = null; a.virt = null
     }
 
     private fun publish() {
-        _sessions.value = attached.values.map { it.info.copy(environmentActive = it.rev != null && it.revEnv != Environment.OFF) }
+        _sessions.value = attached.values.map {
+            it.info.copy(
+                environmentActive = it.rev != null && it.revEnv != Environment.OFF && it.revState == EffectState.ACTIVE,
+                eq = it.eqState, environment = it.revState, spatial = it.virtState,
+            )
+        }
     }
 
     private fun buildConfig(): DynamicsProcessing.Config {
@@ -164,15 +229,20 @@ class SessionEffectsManager(
         rampJob?.cancel()
         if (attached.isEmpty()) return
         val safety = OutputSafety.forType(cfg.output)
-        val env = cfg.settings.environment
-        val roomTarget = env.preset?.toI3dl2(cfg.settings.environmentIntensity)
+        val bypass = cfg.settings.bypass
+        val env = if (bypass) Environment.OFF else cfg.settings.environment
+        val roomTarget = if (bypass) null else env.preset?.toI3dl2(cfg.settings.environmentIntensity)
         rampJob = scope.launch {
             val targets = attached.mapValues { (_, a) ->
                 val boost = if (a.info.isGlobal) 0f else cfg.app.appBoostDb[a.info.packageName] ?: 0f
-                computeTargets(cfg.settings, safety, cfg.volume.attenuationDb, boost, hasLimiter = a.dp != null)
+                computeTargets(if (bypass) SoundSettings() else cfg.settings, safety, cfg.volume.attenuationDb, boost, hasLimiter = a.dp != null)
             }
             // Environment: (re)create the platform reverb when the space changes, starting silent.
-            for (a in attached.values) prepareReverb(a, env, roomTarget)
+            for (a in attached.values) {
+                if (roomTarget == null && a.revState != EffectState.TAKEN_OVER) a.revState = EffectState.IDLE
+                prepareReverb(a, env, roomTarget)
+                applySpatial(a, if (bypass || !cfg.settings.spatialEnabled) null else cfg.settings.width)
+            }
             publish()
             val roomFrom = attached.mapValues { it.value.revLevel }
             val roomTo = roomTarget?.roomLevel ?: I3dl2Params.SILENT_MB
@@ -200,11 +270,15 @@ class SessionEffectsManager(
     }
 
     private fun prepareReverb(a: Attached, env: Environment, p: I3dl2Params?) {
-        if (p == null || !environmentalReverbSupported || a.info.kind == SessionEffectKind.FAILED) return
+        if (p == null) return
+        if (!environmentalReverbSupported) { a.revState = EffectState.UNSUPPORTED; return }
         try {
             if (a.rev == null || a.revEnv != env) {
                 a.rev?.release()
-                a.rev = EnvironmentalReverb(0, a.info.sessionId)
+                a.rev = EnvironmentalReverb(PRIORITY, a.info.sessionId).also { r ->
+                    a.revState = if (r.hasControl()) EffectState.ACTIVE else EffectState.TAKEN_OVER
+                    watchControl(r, a.info.sessionId) { st -> a.revState = st }
+                }
                 a.revLevel = I3dl2Params.SILENT_MB
                 a.revEnv = env
             }
@@ -224,7 +298,31 @@ class SessionEffectsManager(
             // Some devices only offer the reverb as an auxiliary (send) effect, which other apps' players never use.
             Log.w(TAG, "Environment reverb not available for this session")
             try { a.rev?.release() } catch (_: RuntimeException) { }
-            a.rev = null; a.revEnv = Environment.OFF
+            a.rev = null; a.revEnv = Environment.OFF; a.revState = EffectState.REFUSED
+        }
+    }
+
+    /** Spatial: the platform Virtualizer, strength from the Width control. [width] null = off. */
+    private fun applySpatial(a: Attached, width: Float?) {
+        if (width == null) {
+            try { a.virt?.release() } catch (_: RuntimeException) { }
+            a.virt = null
+            if (a.virtState != EffectState.TAKEN_OVER) a.virtState = EffectState.IDLE
+            return
+        }
+        if (!virtualizerSupported) { a.virtState = EffectState.UNSUPPORTED; return }
+        try {
+            val v = a.virt ?: Virtualizer(PRIORITY, a.info.sessionId).also { v ->
+                a.virt = v
+                a.virtState = if (v.hasControl()) EffectState.ACTIVE else EffectState.TAKEN_OVER
+                watchControl(v, a.info.sessionId) { st -> a.virtState = st }
+            }
+            if (v.strengthSupported) v.setStrength(virtualizerStrength(width))
+            v.enabled = true
+        } catch (e: RuntimeException) {
+            Log.w(TAG, "Virtualizer not available for this session")
+            try { a.virt?.release() } catch (_: RuntimeException) { }
+            a.virt = null; a.virtState = EffectState.REFUSED
         }
     }
 
@@ -241,7 +339,7 @@ class SessionEffectsManager(
             a.dp?.let { dp ->
                 for (ch in 0 until 2) {
                     t.bandGainsDb.forEachIndexed { i, g -> dp.setPreEqBandByChannelIndex(ch, i, DynamicsProcessing.EqBand(true, BAND_EDGES[i], g)) }
-                    dp.setInputGainbyChannel(ch, t.inputGainDb)
+                    dp.setInputGainbyChannel(ch, t.inputGainDb + t.balanceDb[ch])
                     dp.setMbcBandByChannelIndex(ch, 0, DynamicsProcessing.MbcBand(true, 20000f, 5f, 200f,
                         if (t.night) 4f else 1f, -32f, 6f, -90f, 1f, 0f, if (t.night) 6f else 0f))
                     dp.setLimiterByChannelIndex(ch, DynamicsProcessing.Limiter(true, true, 0, 1f, 60f, 10f, t.limiterDb, 0f))
@@ -263,8 +361,10 @@ class SessionEffectsManager(
 
     companion object {
         private const val TAG = "Spatia"
-        /** The global output mix. Deprecated by Android for insert effects; used only in opt-in Global mode. */
+        /** The global output mix: reaches apps that never announce their audio (YouTube, Netflix...). */
         const val GLOBAL_SESSION = 0
+        /** Ask for control above normal apps, so a player's own default effect doesn't silently win. */
+        const val PRIORITY = Int.MAX_VALUE
         const val MAX_SESSIONS = 16
         private const val RAMP_STEPS = 8
         private const val RAMP_MS = 200L
@@ -298,13 +398,24 @@ class SessionEffectsManager(
             val worst = (bands.maxOrNull() ?: 0f) + pre
             val budget = if (hasLimiter) safety else safety.copy(maxBoostDb = 0f)
             val headroom = SafetyPolicy.headroomGainDb(worst, budget)
-            return SessionTargets(bands, pre + headroom, safety.limiterCeilingDb, s.nightCompression)
+            return SessionTargets(bands, pre + headroom, safety.limiterCeilingDb, s.nightCompression, balanceDb(s.balance))
         }
+
+        /** Balance -1 (left) .. +1 (right) as a cut on the opposite channel, up to -24 dB at the extremes. */
+        fun balanceDb(balance: Float): FloatArray {
+            val b = balance.coerceIn(-1f, 1f)
+            fun cut(x: Float) = if (x <= 0f) 0f else if (x >= 0.999f) -60f else 20f * kotlin.math.log10(1f - x)
+            return floatArrayOf(cut(b), cut(-b))
+        }
+
+        /** Width 0..2 to Virtualizer strength 0..1000 (per mille); the default width 1 gives a clear 600. */
+        fun virtualizerStrength(width: Float): Short = (width.coerceIn(0f, 2f) * 600f).coerceAtMost(1000f).toInt().toShort()
 
         fun interpolate(a: SessionTargets, b: SessionTargets, t: Float) = SessionTargets(
             FloatArray(a.bandGainsDb.size) { a.bandGainsDb[it] + (b.bandGainsDb[it] - a.bandGainsDb[it]) * t },
             a.inputGainDb + (b.inputGainDb - a.inputGainDb) * t,
             b.limiterDb, b.night,
+            FloatArray(2) { a.balanceDb[it] + (b.balanceDb[it] - a.balanceDb[it]) * t },
         )
     }
 }

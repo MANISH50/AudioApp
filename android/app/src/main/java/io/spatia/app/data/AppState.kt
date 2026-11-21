@@ -14,15 +14,14 @@ data class AppState(
     val customPreset: SoundSettings? = null,
     /** Per-app boost in dB for system-wide sessions, keyed by package name. Capped at use time. */
     val appBoostDb: Map<String, Float> = emptyMap(),
-    val systemWideEnabled: Boolean = false,
-    /** Opt-in: also apply effects to the global output mix (session 0). Deprecated route; device-dependent. */
-    val globalMode: Boolean = false,
-    val bitPerfectUsb: Boolean = false,
+    /** Spatia's main switch: effects run for every app while on. On by default since 0.5.0. */
+    val systemWideEnabled: Boolean = true,
+    /** Apply effects to the global output mix (session 0): the only way to reach YouTube, Netflix... On by default. */
+    val globalMode: Boolean = true,
     val doseTrackingEnabled: Boolean = false,
     val doseWeekStartEpochDay: Long = 0,
     val doseFraction: Double = 0.0,
     val volumeWarningAcknowledgedAt: Long = 0,
-    val sleepTimerMinutes: Int = 0,
 ) {
     fun validated(): AppState = copy(
         perType = perType.mapValues { it.value.validated() },
@@ -31,7 +30,6 @@ data class AppState(
         appBoostDb = appBoostDb.entries.filter { PACKAGE_RX.matches(it.key) }.take(MAX_APPS)
             .associate { it.key to it.value.let { v -> if (v.isFinite()) v.coerceIn(0f, 12f) else 0f } },
         doseFraction = if (doseFraction.isFinite()) doseFraction.coerceIn(0.0, 100.0) else 0.0,
-        sleepTimerMinutes = sleepTimerMinutes.coerceIn(0, 240),
     )
 
     companion object {

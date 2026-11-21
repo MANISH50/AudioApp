@@ -2,57 +2,17 @@
 <!-- All user-visible text lives here. To localise, copy to values-<lang>/strings.xml and translate. -->
 <resources>
     <string name="app_name" translatable="false">Spatia</string>
-    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
 
     <!-- Tabs -->
-    <string name="tab_player">Player</string>
     <string name="tab_sound">Sound</string>
     <string name="tab_output">Output</string>
     <string name="tab_apps">Apps</string>
     <string name="tab_status">Status</string>
 
     <!-- Player -->
-    <string name="player_title">Now playing</string>
-    <string name="player_nothing">Nothing loaded</string>
-    <string name="player_open">Open file</string>
-    <string name="player_play">Play</string>
-    <string name="player_pause">Pause</string>
-    <string name="player_position">Playback position</string>
-    <string name="player_untitled">Untitled</string>
-    <string name="player_formats">Plays FLAC, Opus, AAC, MP3 and WAV. IAMF plays only inside MP4, and only where the device has an IAMF decoder.</string>
-    <string name="player_cannot_play">This file can\'t be played</string>
-    <string name="format_iamf_raw">This is a raw .iamf stream. Spatia can play IAMF only when it is packaged in an MP4 file.</string>
-    <string name="format_iamf_no_decoder">This file contains IAMF immersive audio, but this device has no IAMF decoder. IAMF decoding is built into some devices running Android 16 or later.</string>
-    <string name="format_known_unsupported">This format isn\'t supported. Supported formats: FLAC, Opus, AAC, MP3, WAV and IAMF in MP4.</string>
-    <string name="format_not_audio">This doesn\'t look like an audio file.</string>
-    <string name="format_unknown">Unrecognised file type. Supported formats: FLAC, Opus, AAC, MP3, WAV and IAMF in MP4.</string>
-    <string name="error_decoder">This device has no decoder for the audio in this file.</string>
-    <string name="error_container">The file is damaged or uses a container Spatia can\'t read.</string>
-    <string name="error_file_access">Spatia can\'t open the file anymore. Pick it again.</string>
-    <string name="error_generic">Playback failed.</string>
-
-    <string name="sample_play">Play sample</string>
-    <string name="sample_try">Try with sample</string>
-    <string name="sample_title">Spatia sample track</string>
-    <string name="sample_failed">Couldn\'t create the sample track.</string>
-    <string name="sample_now">Now: %1$s</string>
-    <string name="sample_section_groove">Groove (0–8 s). Try modes, EQ, bass and treble.</string>
-    <string name="sample_section_voice">Voice (8–14 s). Try Podcast/Voice, Voice clarity and Night.</string>
-    <string name="sample_section_hits">Claps with silence (14–20 s). Try Hall, Cinema and Echoing, and listen to the gaps.</string>
-    <string name="sample_section_sweep">Left–right sweep (20–24 s). Try Width, Spatial 3D, Crossfeed and Balance.</string>
-    <string name="sample_guide">An original 24-second track made by Spatia. It loops, so keep changing settings while it plays.</string>
-    <string name="compare_title">A/B compare</string>
-    <string name="compare_bypass">Bypass processing</string>
-    <string name="compare_bypass_help">Hear the original at matched loudness, so louder doesn\'t just sound better.</string>
-    <string name="meters_title">Meters</string>
-    <string name="meter_peak">Peak</string>
-    <string name="meter_rms">RMS</string>
-    <string name="meter_spectrum">Live frequency spectrum</string>
-    <string name="sleep_title">Sleep timer</string>
-    <string name="sleep_off">Off</string>
-    <string name="sleep_minutes">%1$d min</string>
-    <string name="sleep_remaining">Fades out and pauses in %1$s</string>
+    <string name="compare_bypass">Original sound (Spatia off for a moment)</string>
+    <string name="compare_bypass_help">Turn on to hear your apps without Spatia, then off again to compare.</string>
 
     <!-- Sound -->
     <string name="modes_title">Mode</string>
@@ -72,7 +32,7 @@
     <string name="env_default">Default</string>
     <string name="env_intense">Intense</string>
     <string name="env_reset">Reset to default</string>
-    <string name="env_player_only">Full quality in Spatia\'s player. Other apps get an approximation through Android\'s built-in reverb, but only when they\'re being enhanced (see the Apps tab). Echoes there are softer, because Android\'s reverb can\'t repeat sounds.</string>
+    <string name="env_player_only">Uses Android\'s built-in reverb on everything the phone plays. Echoes are softer than a real echo, because Android\'s reverb can\'t repeat sounds.</string>
     <string name="env_off">Off</string>
     <string name="env_off_desc">No room effect.</string>
     <string name="env_hall">Hall</string>
@@ -98,17 +58,8 @@
 
     <string name="spatial_title">Spatial 3D</string>
     <string name="spatial_enable">Spatial audio</string>
-    <string name="spatial_help">Puts virtual speakers around your head using a head-shadow model. Works best with headphones. Applies to the built-in player only.</string>
+    <string name="spatial_help">Widens the sound so it seems to come from around you, for every app. Uses the phone\'s virtualizer, strongest with headphones.</string>
     <string name="spatial_width">Width</string>
-    <string name="spatial_room">Room size</string>
-    <string name="spatial_upmix">Surround upmix</string>
-    <string name="spatial_upmix_help">Turns stereo into virtual 5.0: centre plus rear ambience.</string>
-    <string name="spatial_head_tracking">Head tracking</string>
-    <string name="head_tracking_help">Keeps the sound fixed in the room as you turn your head.</string>
-    <string name="head_tracking_needs_13">Needs Android 13 or later.</string>
-    <string name="head_tracking_needs_headphones">Needs headphones.</string>
-    <string name="head_tracking_no_sensor">No head-tracking sensor found. Connect headphones that support head tracking.</string>
-    <string name="head_recenter">Recenter</string>
 
     <string name="eq_title">10-band equaliser</string>
     <string name="eq_band">%1$s</string>
@@ -119,18 +70,10 @@
     <string name="tone_treble">Treble</string>
     <string name="tone_preamp">Preamp</string>
     <string name="tone_voice">Voice clarity</string>
-    <string name="tone_normalize">Loudness normalisation</string>
-    <string name="tone_normalize_help">Evens out level differences between tracks. Uses ReplayGain tags when the file has them.</string>
     <string name="tone_night">Night compression</string>
     <string name="tone_night_help">Quiet parts get louder and loud parts quieter, for low-volume listening.</string>
     <string name="tone_loudness_comp">Equal-loudness compensation</string>
     <string name="tone_loudness_comp_help">Restores bass and treble at low volume, following the ear\'s equal-loudness curves.</string>
-
-    <string name="extras_title">Output-specific</string>
-    <string name="extras_crossfeed">Headphone crossfeed</string>
-    <string name="extras_crossfeed_help">Blends a little of each channel into the other ear, like speakers in a room, to ease fatigue from hard-panned mixes. Headphones only, with spatial audio off.</string>
-    <string name="extras_psycho_bass">Psychoacoustic bass</string>
-    <string name="extras_psycho_bass_help">Phone speaker only. Adds harmonics so you hear deep bass the speaker can\'t physically play, without overdriving it.</string>
 
     <string name="correction_title">Headphone correction</string>
     <string name="correction_help">Import a parametric EQ file (AutoEq or EqualizerAPO text format) to correct your headphones\' frequency response. The file is read once and stays on your device.</string>
@@ -141,13 +84,6 @@
         <item quantity="other">%1$d filters, preamp %2$.1f dB</item>
     </plurals>
     <string name="correction_import">Import EQ file</string>
-
-    <string name="ir_title">Room impulse response</string>
-    <string name="ir_help">Load a WAV impulse response (up to 2 s, mono or stereo) to place the music in a real room. It\'s held in memory only.</string>
-    <string name="ir_enable">Use room</string>
-    <string name="ir_mix">Room mix</string>
-    <string name="ir_import">Load WAV</string>
-    <string name="ir_clear">Remove</string>
 
     <string name="hearing_title">Personal hearing profile</string>
     <string name="hearing_help">A short listening check builds a gentle compensation curve (at most +6 dB). It isn\'t a medical test, and the results stay on this device.</string>
@@ -164,7 +100,6 @@
     <string name="hearing_replay">Replay tone</string>
 
     <string name="access_title">Accessibility</string>
-    <string name="access_mono">Mono audio</string>
     <string name="access_balance">Left/right balance</string>
 
     <!-- Output -->
@@ -182,9 +117,6 @@
     <string name="output_auto_detect">Auto-detect</string>
     <string name="output_remember">Remember settings per device</string>
     <string name="output_remember_help">Each pair of headphones keeps its own settings. Devices are recognised by type and model name, never by hardware address.</string>
-    <string name="bit_perfect_title">Bit-perfect USB</string>
-    <string name="bit_perfect_enable">Bit-perfect output</string>
-    <string name="bit_perfect_help">Sends audio to your USB DAC unchanged. All Spatia processing (EQ, spatial, limiter) is bypassed while this is on, so use the DAC\'s own volume carefully.</string>
     <string name="dose_title">Listening dose</string>
     <string name="dose_enable">Track weekly listening dose</string>
     <string name="dose_help">Estimates headphone exposure against the WHO safe-listening guideline (80 dB for 40 hours a week). It\'s an estimate from the volume setting, not a measurement, and it stays on this device.</string>
@@ -197,31 +129,17 @@
     <string name="volume_continue">I understand</string>
 
     <!-- Apps / system-wide -->
-    <string name="system_title">Other apps</string>
-    <string name="system_explain">Spatia can enhance other apps only when they announce their audio session to equaliser apps. Many music players do. Most streaming, video, game and call apps don\'t, and Android offers no documented way to process them.</string>
-    <string name="system_enable">Enhance other apps</string>
-    <string name="system_limits">Available here: EQ, bass and treble, voice clarity, loudness compensation, headphone correction, night compression, per-app boost and limiter. Environments use Android\'s reverb here, so they\'re an approximation. Spatial 3D, head tracking, crossfeed and imported room responses work in Spatia\'s player only.</string>
-    <string name="global_enable">Global mode (experimental)</string>
-    <string name="global_help">Also applies effects to everything the phone plays, including apps that don\'t share their audio, like many streaming apps. Android has deprecated this route, so some phones ignore it, and it may clash with other equaliser apps. If you hear no change, your phone doesn\'t allow it.</string>
-    <string name="session_global">All apps (Global mode)</string>
+    <string name="system_title">Advanced</string>
+    <string name="system_explain">Spatia changes the sound of everything your phone plays (YouTube, Netflix, Spotify, games) through Android\'s global sound effects. Apps that announce their audio (many music players) also get their own copy, with a per-app boost below.</string>
+    <string name="global_enable">Apply to all apps (global mix)</string>
+    <string name="global_help">Needed for YouTube, Netflix and other apps that don\'t announce their audio. Turn off only if it clashes with another equaliser app.</string>
+    <string name="session_global">All apps (global mix)</string>
     <string name="session_environment_on">Environment (room effect) applied</string>
-    <string name="diag_title">What\'s happening now</string>
-    <string name="diag_off">Enhancing other apps is off</string>
-    <string name="diag_off_detail">Modes and environments only affect Spatia\'s own player right now.</string>
-    <string name="diag_off_playing">Another app is playing, but Spatia isn\'t enhancing it</string>
-    <string name="diag_off_playing_detail">Turn on \"Enhance other apps\" below, then pause and resume playback in that app.</string>
-    <string name="diag_working">Enhancing other apps</string>
-    <string name="diag_working_detail">Your modes, EQ and environments apply to the apps listed below.</string>
-    <string name="diag_working_global_detail">Global mode is attached. If you still hear no change, your phone ignores Global mode, so use Spatia\'s player or an app that shares its audio.</string>
-    <string name="diag_not_shared">The app playing now hasn\'t shared its audio with Spatia</string>
-    <string name="diag_not_shared_detail">Try these in order: 1. Pause and resume playback in that app. 2. In that app\'s settings, open its Equaliser option and choose Spatia (Apple Music: Settings, Playback, Equaliser, on phones where it\'s offered). 3. Turn on Global mode below. Some streaming apps block all of these, and then only Spatia\'s own player can be enhanced.</string>
-    <string name="diag_waiting">Ready</string>
-    <string name="diag_waiting_detail">Start playback in another app. Apps that share their audio appear below.</string>
-    <string name="banner_other_app_title">The app playing now isn\'t being enhanced</string>
-    <string name="banner_other_app_text">These settings change Spatia\'s player and any app listed on the Apps tab. The audio playing now isn\'t one of them, so you won\'t hear a difference yet.</string>
-    <string name="banner_open_apps">Fix in Apps tab</string>
-    <string name="system_sessions">Active app sessions</string>
-    <string name="system_no_sessions">No app has announced an audio session yet. Start playback in a supported app.</string>
+    <string name="banner_other_app_title">Your phone isn\'t letting Spatia change all apps yet</string>
+    <string name="banner_other_app_text">Changes here won\'t be heard until the Home tab says Spatia is working. It shows what to do on your phone.</string>
+    <string name="banner_open_apps">Open Home</string>
+    <string name="system_sessions">Apps that announced their audio</string>
+    <string name="system_no_sessions">None yet. That\'s normal: YouTube, Netflix and most apps are handled by the global mix instead.</string>
     <string name="session_dp">Enhanced with EQ, dynamics and limiter</string>
     <string name="session_eq">Basic equaliser only. Boost is disabled because this device has no limiter effect.</string>
     <string name="session_failed">Couldn\'t attach. The app or device refused the effect.</string>
@@ -229,8 +147,8 @@
     <string name="session_boost_cap">Boost is limited to %1$.0f dB for this output and always runs through the limiter.</string>
 
     <string name="notif_channel_system">System-wide enhancement</string>
-    <string name="notif_system_title">Spatia is enhancing other apps</string>
-    <string name="notif_system_text">Applies to apps that announce their audio session.</string>
+    <string name="notif_system_title">Spatia is on</string>
+    <string name="notif_system_text">Your sound settings apply to all apps.</string>
 
     <!-- Status -->
     <string name="status_title">Device status</string>
@@ -241,44 +159,22 @@
     <string name="status_unavailable">Unavailable</string>
     <string name="cap_android">Android version</string>
     <string name="cap_android_reason">Android %1$s (API %2$d)</string>
-    <string name="cap_player_dsp">Built-in player processing</string>
-    <string name="cap_player_dsp_reason">Every sound feature works on all supported Android versions.</string>
     <string name="cap_spatializer">Android Spatializer</string>
     <string name="cap_spatializer_os">Needs Android 12L or later.</string>
     <string name="cap_spatializer_device">This device or output doesn\'t offer the platform spatializer. Spatia\'s own spatial audio still works.</string>
     <string name="cap_spatializer_off">Available but turned off in system settings.</string>
     <string name="cap_spatializer_on">Available and on for supported multichannel content.</string>
-    <string name="cap_spatial_app">Spatia spatial 3D</string>
-    <string name="cap_spatial_app_reason">Available in the built-in player on every device.</string>
-    <string name="cap_environment">Environments (Hall, Cinema and more)</string>
-    <string name="cap_environment_reason">Full quality in Spatia\'s player on every device.</string>
     <string name="cap_environment_other">Environments in other apps</string>
-    <string name="cap_environment_other_ok">Available through Android\'s reverb for apps being enhanced. Echoes are softer than in Spatia\'s player.</string>
+    <string name="cap_environment_other_ok">Available through Android\'s reverb for all apps. Echoes are softer than a real echo.</string>
     <string name="cap_environment_other_no">This phone has no reverb effect that can be applied to other apps.</string>
     <string name="cap_global">Global mode</string>
-    <string name="cap_global_reason">Can be turned on in the Apps tab. Android deprecated this route, so it\'s only known to work once you try it.</string>
-    <string name="cap_head_tracking">Head tracking</string>
-    <string name="cap_head_tracking_os">Needs Android 13 or later.</string>
-    <string name="cap_head_tracking_ok">A head-tracking sensor is connected.</string>
-    <string name="cap_head_tracking_no_sensor">No head-tracking headset connected.</string>
+    <string name="cap_global_reason">Starts when Spatia is on. Whether your phone allows it shows on the Home tab.</string>
     <string name="cap_system_wide">Enhancing other apps</string>
-    <string name="cap_system_wide_dp">Works for apps that announce their audio session. Uses DynamicsProcessing.</string>
+    <string name="cap_system_wide_dp">Uses DynamicsProcessing (equaliser, tone, night, limiter).</string>
     <string name="cap_system_wide_eq">Works for apps that announce their audio session, with a basic EQ only. No boost, because there\'s no limiter.</string>
     <string name="cap_system_wide_none">This device exposes no audio effects to apps.</string>
     <string name="cap_system_spatial">Spatial 3D in other apps</string>
-    <string name="cap_system_spatial_reason">Not possible. Android doesn\'t let apps process other apps\' audio samples.</string>
-    <string name="cap_bit_perfect">Bit-perfect USB</string>
-    <string name="cap_bit_perfect_os">Needs Android 14 or later.</string>
-    <string name="cap_bit_perfect_no_usb">Connect a USB DAC.</string>
-    <string name="cap_bit_perfect_ok">The connected USB device supports bit-perfect playback.</string>
-    <string name="cap_bit_perfect_dac">The connected USB device doesn\'t support bit-perfect playback.</string>
-    <string name="cap_codec">%1$s decoding</string>
-    <string name="cap_codec_ok">%1$s decoder available.</string>
-    <string name="cap_codec_missing">No %1$s decoder on this device.</string>
-    <string name="cap_codec_wav">%1$s (PCM) is always supported.</string>
-    <string name="cap_iamf">IAMF immersive audio</string>
-    <string name="cap_iamf_ok">The platform has an IAMF decoder. IAMF in MP4 plays with the built-in player.</string>
-    <string name="cap_iamf_missing">No IAMF decoder on this device. Some devices add one with Android 16.</string>
+    <string name="cap_system_spatial_reason">This phone has no virtualizer effect, so Spatial can\'t be applied to other apps.</string>
     <string name="cap_notifications">Notifications</string>
     <string name="cap_notifications_ok">Allowed. The system-wide service notification will show.</string>
     <string name="cap_notifications_denied">Denied. System-wide enhancement still works, but its notification is hidden.</string>
@@ -287,8 +183,55 @@
     <string name="msg_file_too_large">File is too large.</string>
     <string name="msg_correction_imported">Correction imported. Filters:</string>
     <string name="msg_correction_failed">Couldn\'t import EQ file:</string>
-    <string name="msg_ir_imported">Room impulse response loaded.</string>
-    <string name="msg_ir_failed">Couldn\'t load impulse response:</string>
-    <string name="msg_bit_perfect_failed">The USB device refused bit-perfect mode.</string>
-    <string name="msg_restart_playback">Change applies from the next track.</string>
+
+    <!-- Home (0.5.0: system-wide is the app) -->
+    <string name="tab_home">Home</string>
+    <string name="home_title">Spatia</string>
+    <string name="home_on">On for all apps</string>
+    <string name="home_off">Off</string>
+    <string name="home_switch">Spatia on or off</string>
+    <string name="home_status_off">Off</string>
+    <string name="home_status_off_detail">Your apps play unchanged. Switch on to apply your sound to YouTube, Netflix, Spotify and everything else.</string>
+    <string name="home_status_starting">Starting…</string>
+    <string name="home_status_starting_detail">Attaching to your phone\'s sound output.</string>
+    <string name="home_status_working">Working on all apps</string>
+    <string name="home_status_working_detail">Play anything (YouTube, Netflix, music, games) and change a mode or environment: you\'ll hear it right away. Press Play test sound to check.</string>
+    <string name="home_status_taken">Your phone\'s own sound effect has control</string>
+    <string name="home_status_taken_detail">Another sound enhancer on this phone took over. Turn it off (see the tips below for your phone), then press Try again.</string>
+    <string name="home_status_partial">Only some apps</string>
+    <string name="home_status_partial_detail">This phone doesn\'t let apps change the global sound, so only apps that announce their audio (listed in the Apps tab) are changed. YouTube and Netflix can\'t be reached on this phone without root.</string>
+    <string name="home_status_refused">Your phone is blocking it</string>
+    <string name="home_status_refused_detail">This phone refused Spatia\'s global sound effects. Turn off the phone\'s own sound enhancer (tips below) and press Try again. If it still fails, this phone\'s software doesn\'t allow changing other apps\' sound.</string>
+    <string name="home_effects_title">What\'s running</string>
+    <string name="home_fx_sound">Mode, EQ, bass, treble, night</string>
+    <string name="home_fx_environment">Environment (Hall, Cinema…)</string>
+    <string name="home_fx_spatial">Spatial</string>
+    <string name="home_retry">Try again</string>
+    <string name="home_more_in_sound">Fine-tune EQ, environments and spatial in the Sound tab.</string>
+    <string name="fx_active">Active</string>
+    <string name="fx_off">Off</string>
+    <string name="fx_waiting">Waiting</string>
+    <string name="fx_unsupported">Not on this phone</string>
+    <string name="fx_refused">Blocked by phone</string>
+    <string name="fx_taken">Taken over</string>
+    <string name="home_tips_title">If you hear no change</string>
+    <string name="home_tip_general">Only one sound enhancer can control the phone\'s output. Turn off the phone\'s built-in one and any other equaliser app.</string>
+    <string name="home_tip_xiaomi">Xiaomi / Redmi / POCO: Settings → Sound &amp; vibration → Sound effects (or Headphones and sound effects) → turn off Dolby Atmos / Mi Sound / Adaptive sound and set the equaliser to Default.</string>
+    <string name="home_tip_oppo">OPPO / realme: Settings → Sound &amp; vibration → Dolby Atmos / Real Sound / Sound effects → Off.</string>
+    <string name="home_tip_oneplus">OnePlus: Settings → Sound &amp; vibration → Dolby Atmos (or Audio Tuner / OnePlus Audio) → Off.</string>
+    <string name="home_tip_vivo">vivo / iQOO: Settings → Sound &amp; vibration → Sound effects (Hi-Fi, Dolby Atmos, DTS) → Off.</string>
+    <string name="home_tip_samsung">Samsung: Settings → Sounds and vibration → Sound quality and effects → turn off Dolby Atmos and set Equaliser to Normal.</string>
+    <string name="home_tip_battery">Keep Spatia running: in app settings set Battery to No restrictions (or Unrestricted) and allow Autostart, otherwise the phone may stop it in the background.</string>
+    <string name="home_open_app_settings">Open app settings</string>
+    <string name="test_title">Test</string>
+    <string name="test_help">Plays a few seconds of music the same way YouTube or Netflix would. Change a mode or environment while it plays.</string>
+    <string name="test_play">Play test sound</string>
+    <string name="test_stop">Stop</string>
+    <string name="test_failed">Couldn\'t play the test sound.</string>
+    <string name="msg_service_failed">Your phone didn\'t let Spatia start in the background. Open Spatia again, or allow Autostart in app settings.</string>
+    <string name="spatial_headphones_note">On the phone speaker the effect is weaker; headphones give the widest sound.</string>
+    <string name="cap_global_ok">Working: changes apply to all apps.</string>
+    <string name="cap_global_taken">Another sound enhancer on this phone has control.</string>
+    <string name="cap_global_refused">This phone refused the global mix. Only apps that announce their audio can be changed.</string>
+    <string name="cap_system_spatial_ok">Available through the phone\'s virtualizer for all apps.</string>
 </resources>

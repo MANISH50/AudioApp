@@ -19,10 +19,10 @@ Spatia doesn't collect, transmit or share any data. It has **no INTERNET permiss
 
 | Permission | Why |
 |---|---|
-| `MODIFY_AUDIO_SETTINGS` | Required to create audio effects on sessions and to set bit-perfect mixer attributes. |
-| `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` | Background playback in the built-in player. |
-| `FOREGROUND_SERVICE_SPECIAL_USE` | The opt-in system-wide enhancement service (Android 14+ requires a declared type). |
-| `POST_NOTIFICATIONS` | Requested only when system-wide enhancement is turned on (Android 13+), to show its ongoing notification. |
+| `MODIFY_AUDIO_SETTINGS` | Required to create audio effects on the output mix and on sessions. |
+| `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE` | The system-wide effects service that keeps effects attached while Spatia is on (Android 14+ requires a declared type). |
+| `POST_NOTIFICATIONS` | Requested when Spatia is switched on (Android 13+), to show its ongoing notification. |
+| `RECEIVE_BOOT_COMPLETED` | Restarts the effects service after a reboot, only if the user left Spatia on. The receiver is not exported. |
 
 ## Reporting
 

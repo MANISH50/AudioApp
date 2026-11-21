@@ -62,7 +62,7 @@ fun EnvironmentSection(
     intensity: Float,
     onEnvironment: (Environment) -> Unit,
     onIntensity: (Float) -> Unit,
-    onTrySample: () -> Unit,
+    onTest: () -> Unit,
 ) {
     Section(stringResource(R.string.env_title)) {
         Text(stringResource(R.string.env_help), style = MaterialTheme.typography.bodySmall)
@@ -102,7 +102,7 @@ fun EnvironmentSection(
                 onClick = { onIntensity(EnvironmentPreset.DEFAULT_INTENSITY) },
                 enabled = !off && abs(intensity - EnvironmentPreset.DEFAULT_INTENSITY) > 0.01f,
             ) { Text(stringResource(R.string.env_reset)) }
-            OutlinedButton(onClick = onTrySample) { Text(stringResource(R.string.sample_try)) }
+            OutlinedButton(onClick = onTest) { Text(stringResource(R.string.test_play)) }
         }
         Text(stringResource(R.string.env_player_only), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)

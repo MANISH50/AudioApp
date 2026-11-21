@@ -1,28 +1,19 @@
 package io.spatia.app.ui
 
 import android.app.Application
-import android.content.ComponentName
+import android.content.Intent
+import android.media.AudioTrack
 import android.net.Uri
-import android.provider.OpenableColumns
-import androidx.annotation.StringRes
+import android.provider.Settings
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.session.MediaController
-import androidx.media3.session.SessionToken
 import io.spatia.app.R
 import io.spatia.app.SpatiaApp
 import io.spatia.app.capabilities.Capability
-import io.spatia.app.player.BitPerfect
-import io.spatia.app.player.FormatSupport
-import io.spatia.app.player.PlaybackService
 import io.spatia.app.system.SessionEffectService
+import io.spatia.app.system.TestSound
 import io.spatia.dsp.analysis.HearingProfile
 import io.spatia.dsp.io.ParametricEqParser
-import io.spatia.dsp.io.WavReader
 import io.spatia.dsp.model.Mode
 import io.spatia.dsp.model.OutputType
 import io.spatia.dsp.model.SoundSettings
@@ -31,173 +22,95 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-data class PlayerUi(
-    val title: String? = null,
-    val isPlaying: Boolean = false,
-    val positionMs: Long = 0,
-    val durationMs: Long = 0,
-    @StringRes val error: Int? = null,
-)
-
-data class MeterUi(val peakDb: Float = -120f, val rmsDb: Float = -120f, val spectrum: FloatArray = FloatArray(0),
-                   val limiterDb: Float = 0f)
-
-@androidx.annotation.OptIn(markerClass = [androidx.media3.common.util.UnstableApi::class])
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as SpatiaApp
     val config = app.engine.config
     val sessions = app.sessionEffects.sessions
     val volume = app.volume.state
-    val headTrackerAvailable = app.headTracker.available
 
     private val _capabilities = MutableStateFlow<List<Capability>>(emptyList())
     val capabilities: StateFlow<List<Capability>> = _capabilities
-    private val _player = MutableStateFlow(PlayerUi())
-    val player: StateFlow<PlayerUi> = _player
-    private val _meters = MutableStateFlow(MeterUi())
-    val meters: StateFlow<MeterUi> = _meters
     /** One-shot user messages (string resource + optional detail). */
     val message = MutableStateFlow<Pair<Int, String?>?>(null)
-    private val _sleepRemainingS = MutableStateFlow(0)
-    val sleepRemainingS: StateFlow<Int> = _sleepRemainingS
-    private val _sleepMinutes = MutableStateFlow(0)
-    val sleepMinutes: StateFlow<Int> = _sleepMinutes
 
     /** Tab the UI should switch to (e.g. after another app opens Spatia as its equaliser). */
     val requestedTab = MutableStateFlow<Int?>(null)
     val activeMediaStreams = app.playbackWatcher.activeMediaStreams
-    val ownPlaying = app.engine.ownPlaying
 
-    private var controller: MediaController? = null
-    private var sleepJob: Job? = null
+    private val _testPlaying = MutableStateFlow(false)
+    val testPlaying: StateFlow<Boolean> = _testPlaying
+    private var testTrack: AudioTrack? = null
+    private var testJob: Job? = null
 
-    init {
-        val token = SessionToken(application, ComponentName(application, PlaybackService::class.java))
-        val future = MediaController.Builder(application, token).buildAsync()
-        future.addListener({
-            controller = runCatching { future.get() }.getOrNull()?.also { c ->
-                c.addListener(object : Player.Listener {
-                    override fun onEvents(player: Player, events: Player.Events) = syncPlayer()
-                    override fun onPlayerError(error: PlaybackException) {
-                        _player.value = _player.value.copy(error = errorMessage(error))
-                    }
-                })
-                syncPlayer()
-            }
-        }, application.mainExecutor)
-        viewModelScope.launch { tick() }
-        refreshDevice()
-    }
-
-    private suspend fun tick() {
-        while (viewModelScope.isActive) {
-            syncPlayer()
-            app.engine.meters?.let { m ->
-                _meters.value = MeterUi(m.peakDb, m.rmsDb, if (_player.value.isPlaying) m.spectrum() else FloatArray(0))
-            }
-            delay(100)
-        }
-    }
-
-    private fun syncPlayer() {
-        val c = controller ?: return
-        _player.value = _player.value.copy(
-            title = c.mediaMetadata.title?.toString() ?: _player.value.title,
-            isPlaying = c.isPlaying,
-            positionMs = c.currentPosition.coerceAtLeast(0),
-            durationMs = c.duration.takeIf { it > 0 } ?: 0,
-        )
-    }
-
-    private fun errorMessage(e: PlaybackException): Int = when (e.errorCode) {
-        PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED,
-        PlaybackException.ERROR_CODE_DECODER_INIT_FAILED -> R.string.error_decoder
-        PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
-        PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED -> R.string.error_container
-        PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND, PlaybackException.ERROR_CODE_IO_NO_PERMISSION -> R.string.error_file_access
-        else -> R.string.error_generic
-    }
+    init { refreshDevice() }
 
     fun refreshDevice() {
         app.outputs.refresh(); app.volume.refresh()
-        // Foreground services may only start while we are visible, so (re)start here.
-        if (config.value.app.systemWideEnabled) SessionEffectService.start(getApplication())
+        // Foreground services may only start while we are visible, so (re)start here. Read the stored value, not the
+        // flow's initial default, so a user who switched Spatia off isn't switched back on.
+        viewModelScope.launch {
+            if (app.settings.load().systemWideEnabled) startService()
+        }
         viewModelScope.launch { _capabilities.value = withContext(Dispatchers.Default) { app.capabilities.query() } }
     }
 
-    // ---------- player ----------
-    fun openFile(uri: Uri) {
-        val ctx = getApplication<Application>()
-        val mime = ctx.contentResolver.getType(uri)
-        val name = displayName(uri)
-        when (val v = FormatSupport.classify(mime, name, FormatSupport.platformIamfDecoder())) {
-            is FormatSupport.Verdict.Unsupported -> { _player.value = _player.value.copy(error = v.reason); return }
-            FormatSupport.Verdict.Supported -> Unit
+    private fun startService() {
+        try { SessionEffectService.start(getApplication()) } catch (e: RuntimeException) {
+            message.value = R.string.msg_service_failed to null
         }
-        val item = MediaItem.Builder().setUri(uri)
-            .setMediaMetadata(MediaMetadata.Builder().setTitle(name ?: ctx.getString(R.string.player_untitled)).build())
-            .build()
-        _player.value = PlayerUi(title = name)
-        controller?.run { repeatMode = Player.REPEAT_MODE_OFF; setMediaItem(item); prepare(); play() }
-        _samplePlaying.value = false
     }
 
-    private val _samplePlaying = MutableStateFlow(false)
-    /** True while the built-in sample track is loaded, so the UI can show what each section demonstrates. */
-    val samplePlaying: StateFlow<Boolean> = _samplePlaying
-
-    /** Plays Spatia's synthesised sample on loop, so modes and environments can be switched while listening. */
-    fun playSample() = viewModelScope.launch {
-        val ctx = getApplication<Application>()
-        val file = runCatching { io.spatia.app.player.SampleTrackFile.get(ctx) }.getOrElse {
-            message.value = R.string.sample_failed to null; return@launch
-        }
-        val title = ctx.getString(R.string.sample_title)
-        val item = MediaItem.Builder().setUri(Uri.fromFile(file))
-            .setMediaMetadata(MediaMetadata.Builder().setTitle(title).build()).build()
-        _player.value = PlayerUi(title = title)
-        controller?.run { repeatMode = Player.REPEAT_MODE_ONE; setMediaItem(item); prepare(); play() }
-        _samplePlaying.value = true
+    // ---------- main switch / test ----------
+    fun setEnabled(enable: Boolean) {
+        app.settings.update { it.copy(systemWideEnabled = enable, globalMode = it.globalMode || enable) }
+        if (enable) startService() else SessionEffectService.stop(getApplication())
     }
 
-    private fun displayName(uri: Uri): String? = runCatching {
-        getApplication<Application>().contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-            ?.use { c -> if (c.moveToFirst()) c.getString(0)?.take(200) else null }
-    }.getOrNull()
+    fun setGlobalMode(enable: Boolean) = app.settings.update { it.copy(globalMode = enable) }
 
-    fun playPause() { controller?.let { if (it.isPlaying) it.pause() else it.play() } }
-    fun seekTo(ms: Long) { controller?.seekTo(ms) }
-    fun clearError() { _player.value = _player.value.copy(error = null) }
+    /** Re-creates every effect; used after the user turned off the phone's own sound enhancer. */
+    fun retryEffects() = app.sessionEffects.reattachAll()
 
-    /** Sleep timer: counts down, then fades the player out over 15 s and pauses. */
-    fun setSleepTimer(minutes: Int) {
-        sleepJob?.cancel()
-        _sleepRemainingS.value = 0
-        _sleepMinutes.value = minutes
-        if (minutes <= 0) { controller?.volume = 1f; return }
-        sleepJob = viewModelScope.launch {
-            var remaining = minutes * 60
-            while (remaining > 0) { _sleepRemainingS.value = remaining; delay(1000); remaining-- }
-            val c = controller
-            if (c != null) {
-                for (i in 30 downTo 0) { c.volume = i / 30f; delay(500) }
-                c.pause(); c.volume = 1f
+    /** Plays a few seconds of music through the normal media path, so the user hears what other apps get. */
+    fun playTest() {
+        stopTest()
+        testJob = viewModelScope.launch {
+            val track = try {
+                withContext(Dispatchers.Default) { TestSound.pcm() } // warm-up keeps the main thread free
+                TestSound.play()
+            } catch (e: Exception) {
+                message.value = R.string.test_failed to null; return@launch
             }
-            _sleepRemainingS.value = 0
-            _sleepMinutes.value = 0
+            testTrack = track
+            _testPlaying.value = true
+            delay((TestSound.SECONDS * 1000).toLong() + 200)
+            stopTest()
         }
+    }
+
+    fun stopTest() {
+        testJob?.cancel(); testJob = null
+        testTrack?.let { t -> try { t.stop() } catch (_: IllegalStateException) { }; t.release() }
+        testTrack = null
+        _testPlaying.value = false
+    }
+
+    /** App settings page: where MIUI/ColorOS/OxygenOS/Funtouch keep "Battery: No restrictions" and "Autostart". */
+    fun openAppSettings() {
+        val ctx = getApplication<Application>()
+        val i = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", ctx.packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try { ctx.startActivity(i) } catch (_: RuntimeException) { }
     }
 
     // ---------- sound ----------
     fun applyMode(mode: Mode) = app.engine.applyMode(mode)
     fun tweak(t: (SoundSettings) -> SoundSettings) = app.engine.tweak(t)
-    /** Changes that are not part of a "sound" preset (A/B, correction on/off) keep the current mode. */
+    /** Changes that are not part of a "sound" preset (on/off, correction on/off) keep the current mode. */
     fun edit(t: (SoundSettings) -> SoundSettings) = app.engine.editActive(t)
-    fun recenterHead() = app.engine.recenterHead()
 
     fun importCorrection(uri: Uri) = viewModelScope.launch {
         val result = withContext(Dispatchers.IO) {
@@ -210,21 +123,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (r.warnings.isEmpty()) "" else " (${r.warnings.size})"
         }.onFailure { message.value = R.string.msg_correction_failed to it.message }
     }
-
-    fun importImpulse(uri: Uri) = viewModelScope.launch {
-        val result = withContext(Dispatchers.IO) {
-            runCatching { readBounded(uri, WavReader.MAX_BYTES)?.let { WavReader.read(it) } }
-        }
-        result.onSuccess { w ->
-            if (w == null) { message.value = R.string.msg_file_too_large to null; return@onSuccess }
-            app.engine.setImpulseResponse(w)
-            edit { it.copy(convolutionEnabled = true) }
-            message.value = R.string.msg_ir_imported to null
-        }.onFailure { message.value = R.string.msg_ir_failed to it.message }
-    }
-
-    fun clearImpulse() { app.engine.setImpulseResponse(null); edit { it.copy(convolutionEnabled = false) } }
-    val hasImpulse: Boolean get() = app.engine.hasImpulse
 
     /** Reads at most [max] bytes; returns null if the file is larger (input validation before parsing). */
     private fun readBounded(uri: Uri, max: Int): ByteArray? =
@@ -252,29 +150,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun acknowledgeVolume() = app.settings.update { it.copy(volumeWarningAcknowledgedAt = System.currentTimeMillis()) }
     fun reduceVolume() = app.volume.reduceToSafe()
 
-    fun setBitPerfect(enable: Boolean) {
-        val usb = app.outputs.state.value.connected.firstOrNull { it.type == OutputType.USB }
-        val ok = BitPerfect.apply(getApplication(), usb?.let { app.outputs.deviceInfo(it.id) }, enable)
-        if (enable && !ok) { message.value = R.string.msg_bit_perfect_failed to null; return }
-        app.settings.update { it.copy(bitPerfectUsb = enable) }
-        message.value = R.string.msg_restart_playback to null
-    }
-
-    // ---------- system-wide ----------
-    fun setSystemWide(enable: Boolean) {
-        app.settings.update { it.copy(systemWideEnabled = enable) }
-        val ctx = getApplication<Application>()
-        if (enable) SessionEffectService.start(ctx) else SessionEffectService.stop(ctx)
-    }
-
-    fun setGlobalMode(enable: Boolean) {
-        app.settings.update { it.copy(globalMode = enable, systemWideEnabled = it.systemWideEnabled || enable) }
-        if (enable) SessionEffectService.start(getApplication())
-    }
-
+    // ---------- per-app ----------
     fun attachFromEffectPanel(req: io.spatia.app.system.EffectPanelRequest) {
         app.settings.update { it.copy(systemWideEnabled = true) }
-        SessionEffectService.start(getApplication())
+        startService()
         app.sessionEffects.startObserving()
         app.sessionEffects.open(req.sessionId, req.packageName)
         requestedTab.value = 3
@@ -283,7 +162,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setAppBoost(pkg: String, db: Float) = app.settings.update { it.copy(appBoostDb = it.appBoostDb + (pkg to db)) }
 
     override fun onCleared() {
-        controller?.release()
+        stopTest()
         super.onCleared()
     }
 }

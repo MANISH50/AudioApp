@@ -4,10 +4,6 @@ import android.media.AudioDeviceInfo
 import io.spatia.app.data.AppState
 import io.spatia.app.data.SettingsRepository
 import io.spatia.app.output.DeviceMapping
-import io.spatia.app.player.FormatSupport
-import io.spatia.app.player.FormatSupport.Verdict
-import io.spatia.app.player.ReplayGain
-import io.spatia.app.spatial.HeadTrackerSource
 import io.spatia.app.system.SessionEffectsManager
 import io.spatia.dsp.model.OutputSafety
 import io.spatia.dsp.model.OutputType
@@ -19,28 +15,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AppLogicTest {
-    @Test fun formatClassification() {
-        for (ok in listOf("a.flac" to "audio/flac", "a.opus" to null, "a.m4a" to "audio/mp4", "a.mp3" to "audio/mpeg", "a.wav" to "audio/x-wav")) {
-            assertEquals(Verdict.Supported, FormatSupport.classify(ok.second, ok.first, platformIamfDecoder = false))
-        }
-        assertEquals(Verdict.Unsupported(R.string.format_iamf_raw), FormatSupport.classify(null, "x.iamf", true))
-        assertEquals(Verdict.Unsupported(R.string.format_iamf_no_decoder), FormatSupport.classify("audio/iamf", "x.mp4", false))
-        assertEquals(Verdict.Supported, FormatSupport.classify("audio/iamf", "x.mp4", true))
-        assertEquals(Verdict.Unsupported(R.string.format_known_unsupported), FormatSupport.classify(null, "x.dsf", false))
-        assertEquals(Verdict.Unsupported(R.string.format_not_audio), FormatSupport.classify("image/png", "x.png", false))
-        assertEquals(Verdict.Unsupported(R.string.format_unknown), FormatSupport.classify(null, "x.zzz", false))
-    }
-
-    @Test fun replayGainParsing() {
-        assertEquals(-6.5f, ReplayGain.gainDb(mapOf("REPLAYGAIN_TRACK_GAIN" to "-6.50 dB"))!!, 1e-4f)
-        assertEquals(2f, ReplayGain.gainDb(mapOf("REPLAYGAIN_ALBUM_GAIN" to "+2 dB"))!!, 1e-4f)
-        // R128: -512/256 = -2 dB relative to -23 LUFS -> +3 dB at the ReplayGain reference.
-        assertEquals(3f, ReplayGain.gainDb(mapOf("R128_TRACK_GAIN" to "-512"))!!, 1e-4f)
-        assertEquals(15f, ReplayGain.gainDb(mapOf("REPLAYGAIN_TRACK_GAIN" to "99 dB"))!!, 0f)
-        assertNull(ReplayGain.gainDb(mapOf("REPLAYGAIN_TRACK_GAIN" to "loud; DROP TABLE")))
-        assertNull(ReplayGain.gainDb(emptyMap()))
-    }
-
     @Test fun deviceMapping() {
         assertEquals(OutputType.SPEAKER, DeviceMapping.map(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER))
         assertEquals(OutputType.WIRED, DeviceMapping.map(AudioDeviceInfo.TYPE_WIRED_HEADPHONES))
@@ -123,10 +97,62 @@ class AppLogicTest {
         for (i in a.bandGainsDb.indices) assertEquals((a.bandGainsDb[i] + b.bandGainsDb[i]) / 2, mid.bandGainsDb[i], 1e-4f)
     }
 
-    @Test fun headTrackerYawSign() {
-        // Rotation of +0.5 rad about Z (up) is a counter-clockwise turn, i.e. head turned left -> negative yaw.
-        assertEquals(-0.5, HeadTrackerSource.yawFromRotationVector(0f, 0f, 0.5f), 1e-6)
-        assertEquals(0.0, HeadTrackerSource.yawFromRotationVector(0f, 0f, 0f), 0.0)
-        assertEquals(-3.0, HeadTrackerSource.wrap(Math.PI * 2 - 3.0), 1e-9)
+    @Test fun systemWideIsOnByDefault() {
+        val s = AppState()
+        assertTrue(s.systemWideEnabled && s.globalMode)
+        // Settings saved by 0.4.x without these keys (defaults weren't encoded) now come up on.
+        val old = SettingsRepository.decode("""{"perType":{"WIRED":{"bassDb":4.0}}}""")
+        assertTrue(old.systemWideEnabled && old.globalMode)
+        // An explicit "off" is respected.
+        assertEquals(false, SettingsRepository.decode("""{"systemWideEnabled":false}""").systemWideEnabled)
+    }
+
+    @Test fun homeStatusReflectsTheGlobalEffect() {
+        fun g(eq: io.spatia.app.system.EffectState) = io.spatia.app.system.SessionInfo(0, "global",
+            io.spatia.app.system.SessionEffectKind.DYNAMICS_PROCESSING, isGlobal = true, eq = eq)
+        val app = io.spatia.app.system.SessionInfo(42, "com.x.player", io.spatia.app.system.SessionEffectKind.DYNAMICS_PROCESSING,
+            eq = io.spatia.app.system.EffectState.ACTIVE)
+        assertEquals(io.spatia.app.ui.HomeStatus.OFF, io.spatia.app.ui.homeStatus(false, true, emptyList()))
+        assertEquals(io.spatia.app.ui.HomeStatus.STARTING, io.spatia.app.ui.homeStatus(true, true, emptyList()))
+        assertEquals(io.spatia.app.ui.HomeStatus.WORKING_ALL,
+            io.spatia.app.ui.homeStatus(true, true, listOf(g(io.spatia.app.system.EffectState.ACTIVE))))
+        assertEquals(io.spatia.app.ui.HomeStatus.TAKEN_OVER,
+            io.spatia.app.ui.homeStatus(true, true, listOf(g(io.spatia.app.system.EffectState.TAKEN_OVER))))
+        assertEquals(io.spatia.app.ui.HomeStatus.REFUSED,
+            io.spatia.app.ui.homeStatus(true, true, listOf(g(io.spatia.app.system.EffectState.REFUSED))))
+        assertEquals(io.spatia.app.ui.HomeStatus.REFUSED_ANNOUNCED_ONLY,
+            io.spatia.app.ui.homeStatus(true, true, listOf(g(io.spatia.app.system.EffectState.REFUSED), app)))
+    }
+
+    @Test fun phoneBrands() {
+        assertEquals(io.spatia.app.ui.Brand.XIAOMI, io.spatia.app.ui.brandOf("Xiaomi"))
+        assertEquals(io.spatia.app.ui.Brand.XIAOMI, io.spatia.app.ui.brandOf("POCO"))
+        assertEquals(io.spatia.app.ui.Brand.OPPO_REALME, io.spatia.app.ui.brandOf("realme"))
+        assertEquals(io.spatia.app.ui.Brand.ONEPLUS, io.spatia.app.ui.brandOf("OnePlus"))
+        assertEquals(io.spatia.app.ui.Brand.VIVO, io.spatia.app.ui.brandOf("vivo"))
+        assertEquals(io.spatia.app.ui.Brand.OTHER, io.spatia.app.ui.brandOf(""))
+    }
+
+    @Test fun balanceAndSpatialMapping() {
+        val c = SessionEffectsManager.balanceDb(0f)
+        assertEquals(0f, c[0]); assertEquals(0f, c[1])
+        val r = SessionEffectsManager.balanceDb(0.5f) // towards right: left channel is cut
+        assertTrue(r[0] < -5f && r[0] > -7f); assertEquals(0f, r[1])
+        assertEquals(-60f, SessionEffectsManager.balanceDb(-1f)[1])
+        assertEquals(600.toShort(), SessionEffectsManager.virtualizerStrength(1f))
+        assertEquals(1000.toShort(), SessionEffectsManager.virtualizerStrength(2f))
+        assertEquals(0.toShort(), SessionEffectsManager.virtualizerStrength(0f))
+    }
+
+    @Test fun bypassGivesFlatTargets() {
+        val t = SessionEffectsManager.computeTargets(SoundSettings(), OutputSafety.forType(OutputType.WIRED), 0f, 0f, true)
+        assertTrue(t.bandGainsDb.all { kotlin.math.abs(it) < 0.01f })
+    }
+
+    @Test fun testSoundIsShortStereoAndNotSilent() {
+        val pcm = io.spatia.app.system.TestSound.pcm()
+        assertEquals((io.spatia.app.system.TestSound.SECONDS * io.spatia.app.system.TestSound.RATE).toInt() * 2, pcm.size)
+        assertTrue(pcm.any { kotlin.math.abs(it.toInt()) > 3000 })
+        assertEquals(0, pcm[0].toInt()) // faded in, no click
     }
 }

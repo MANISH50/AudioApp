@@ -5,9 +5,10 @@
     <!-- Minimal permissions. No network access at all: nothing can leave the device. -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Turns Spatia back on after a restart, only if the user left it on. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Defensive: make sure no library merges these in. -->
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
@@ -48,23 +49,21 @@
         </activity>
 
         <service
-            android:name=".player.PlaybackService"
-            android:exported="true"
-            android:foregroundServiceType="mediaPlayback"
-            tools:ignore="ExportedService">
-            <!-- Exported only for the MediaSession protocol (system media controls, Bluetooth buttons). -->
-            <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
-            </intent-filter>
-        </service>
-
-        <service
             android:name=".system.SessionEffectService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Applies user-chosen audio effects to audio sessions that other apps explicitly announce via AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION." />
+                android:value="Keeps the user's chosen system-wide audio effects (equaliser, environments, spatial) attached to the device's output mix and to audio sessions other apps announce, while the user has Spatia switched on." />
         </service>
+
+        <receiver
+            android:name=".system.BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

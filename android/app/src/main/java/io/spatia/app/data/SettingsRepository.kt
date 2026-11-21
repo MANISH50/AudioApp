@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,6 +24,11 @@ class SettingsRepository(private val context: Context, private val scope: Corout
         .catch { emit(androidx.datastore.preferences.core.emptyPreferences()) }
         .map { prefs -> decode(prefs[key]) }
         .stateIn(scope, SharingStarted.Eagerly, AppState())
+
+    /** Reads the stored state directly (not the eagerly-started flow, whose first value is only the default). */
+    suspend fun load(): AppState = try {
+        decode(context.dataStore.data.first()[key])
+    } catch (e: java.io.IOException) { AppState() }
 
     fun update(transform: (AppState) -> AppState) {
         scope.launch {

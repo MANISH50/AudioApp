@@ -20,7 +20,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.spatia.app.R
-import io.spatia.app.player.BitPerfect
 import io.spatia.dsp.model.OutputSafety
 import io.spatia.dsp.model.OutputType
 
@@ -50,22 +49,6 @@ fun OutputScreen(vm: MainViewModel, modifier: Modifier = Modifier) {
             }
             SwitchRow(stringResource(R.string.output_remember), cfg.app.rememberPerDevice,
                 supporting = stringResource(R.string.output_remember_help), onChange = vm::setRememberPerDevice)
-        }
-
-        Section(stringResource(R.string.bit_perfect_title)) {
-            val usb = cfg.output == OutputType.USB
-            SwitchRow(
-                stringResource(R.string.bit_perfect_enable), cfg.app.bitPerfectUsb,
-                enabled = BitPerfect.osSupported && (usb || cfg.app.bitPerfectUsb),
-                supporting = stringResource(
-                    when {
-                        !BitPerfect.osSupported -> R.string.cap_bit_perfect_os
-                        !usb -> R.string.cap_bit_perfect_no_usb
-                        else -> R.string.bit_perfect_help
-                    },
-                ),
-                onChange = vm::setBitPerfect,
-            )
         }
 
         Section(stringResource(R.string.dose_title)) {
