@@ -17,3 +17,5 @@ obj/
 .vs/
 TestResults/
 *.exe
+# Locally repackaged Windows installers
+Spatia-Setup-*.zip
