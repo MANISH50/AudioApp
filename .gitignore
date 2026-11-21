@@ -19,3 +19,5 @@ TestResults/
 *.exe
 # Locally repackaged Windows installers
 Spatia-Setup-*.zip
+# Locally repackaged ScreenLink installers
+ScreenLink-Setup-*.zip

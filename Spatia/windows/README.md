@@ -44,8 +44,8 @@ The built-in file player and sample-track player of 0.1.x were removed in 0.2.0.
 Requirements: JDK 21, .NET SDK 10, and Windows to publish the app. The engine and tests also build on Linux.
 
 ```
-cd android && ./gradlew :core-dsp:allTests :core-dsp:linkReleaseSharedMingwX64   # builds spatia_dsp.dll
-cd windows && dotnet test tests/Spatia.Core.Tests                                # tests against the real engine
+cd Spatia/android && ./gradlew :core-dsp:allTests :core-dsp:linkReleaseSharedMingwX64   # builds spatia_dsp.dll
+cd ../windows && dotnet test tests/Spatia.Core.Tests                                # tests against the real engine
 dotnet publish src/Spatia.App -c Release -o out/Spatia                           # on Windows
 ```
 

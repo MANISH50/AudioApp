@@ -7,10 +7,10 @@
   #define AppVersion "0.2.0"
 #endif
 #ifndef SourceDir
-  #define SourceDir "..\..\out\Spatia"
+  #define SourceDir "..\..\..\out\Spatia"
 #endif
 #ifndef OutputDir
-  #define OutputDir "..\..\out"
+  #define OutputDir "..\..\..\out"
 #endif
 
 [Setup]

@@ -1,12 +1,14 @@
-# Spatia
+# Apps
 
-Spatial audio player and sound enhancer built on open, royalty-free technology.
+This repository holds two independent apps. Each app has its own folder, with one sub-folder per platform.
 
-| Folder | App | Status |
-|---|---|---|
-| [`android/`](android/README.md) | Android app (Kotlin, Jetpack Compose, Media3), plus the shared audio engine `android/core-dsp` | Released (0.4.0) |
-| [`windows/`](windows/README.md) | Windows desktop app (C#, .NET 10, WinUI 3). It uses the same audio engine, compiled to `spatia_dsp.dll` | 0.1.0 (installer on the Releases page) |
+| App | What it does | Android | Windows |
+|---|---|---|---|
+| [**Spatia**](Spatia/) | Spatial audio and sound enhancer for every app | [`Spatia/android`](Spatia/android/README.md) | [`Spatia/windows`](Spatia/windows/README.md) |
+| [**ScreenLink**](ScreenLink/README.md) | Cast your phone's screen to your laptop, and use the phone as a keyboard for the laptop | [`ScreenLink/android`](ScreenLink/android/) | [`ScreenLink/windows`](ScreenLink/windows/) |
 
-The audio engine (EQ, environments, limiter, spatial 3D, presets, parsers and the sample track) lives once, in `android/core-dsp`. It's Kotlin Multiplatform: the Android app uses it directly, and the Windows app calls it as `spatia_dsp.dll`. A fix or tuning change there reaches both apps, and one test suite covers both.
+Spatia's audio engine lives once, in `Spatia/android/core-dsp` (Kotlin Multiplatform): the Android app uses it directly and the
+Windows app calls it as `spatia_dsp.dll`.
 
-CI workflows live in `.github/workflows/`, where GitHub requires them.
+CI workflows live in `.github/workflows/` (where GitHub requires them), one per app and platform:
+`spatia-android.yml`, `spatia-windows.yml`, `screenlink-android.yml`, `screenlink-windows.yml`.
