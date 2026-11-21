@@ -2,9 +2,9 @@ name: Windows
 
 on:
   push:
-    paths: ["windows/**", "android/core-dsp/**", "android/gradle/**", ".github/workflows/windows.yml"]
+    paths: ["windows/**", "android/core-dsp/**", "android/gradle/**", "android/*.kts", "android/gradle.properties", ".github/workflows/windows.yml"]
   pull_request:
-    paths: ["windows/**", "android/core-dsp/**", "android/gradle/**", ".github/workflows/windows.yml"]
+    paths: ["windows/**", "android/core-dsp/**", "android/gradle/**", "android/*.kts", "android/gradle.properties", ".github/workflows/windows.yml"]
   workflow_dispatch:
 
 permissions:
