@@ -91,7 +91,29 @@ foreach ($f in 'Spatia.exe', 'spatia_dsp.dll', 'Spatia.ico', 'unins000.exe') {
 $startMenu = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Spatia.lnk'
 if (-not (Test-Path $startMenu)) { Fail 'Start-menu shortcut missing' }
 
+# Full crash dumps for Spatia.exe so a native UI failure can be analysed (CI runner only).
+$dumpDir = Join-Path $OutDir 'dumps'
+New-Item -ItemType Directory -Force -Path $dumpDir | Out-Null
+$wer = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\Spatia.exe'
+New-Item -Path $wer -Force | Out-Null
+Set-ItemProperty -Path $wer -Name DumpFolder -Value $dumpDir -Type ExpandString
+Set-ItemProperty -Path $wer -Name DumpType -Value 2 -Type DWord
+Set-ItemProperty -Path $wer -Name DumpCount -Value 3 -Type DWord
+
+function Analyze-Dump {
+    $dump = Get-ChildItem $dumpDir -Filter *.dmp -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1
+    if (-not $dump) { Write-Host 'No crash dump was written.'; return }
+    $cdb = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Debuggers\x64\cdb.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $cdb) { Write-Host "Dump at $($dump.FullName) (cdb.exe not available to analyse it)"; return }
+    Write-Host "--- !analyze of $($dump.Name) (stowed exception details) ---"
+    $out = & $cdb.FullName -z $dump.FullName -c '.symfix; !analyze -v; q' 2>&1
+    $out | Select-String -Pattern 'STOWED|originate|Error|HRESULT|EXCEPTION_CODE|ERROR_CODE|Message|BUCKET|FAILURE|Xaml|0x80|0xc0' | Select-Object -First 80 | ForEach-Object { Write-Host $_.Line }
+    $out | Out-File (Join-Path $OutDir 'analyze.txt')
+}
+
 # ---------------------------------------------------------------- launch
+Write-Host 'Resource index files installed:'
+Get-ChildItem (Split-Path $exe) -Filter *.pri | ForEach-Object { Write-Host "  $($_.Name)  $($_.Length) bytes" }
 Step 'Launch installed app and wait for a visible window'
 $proc = Start-Process $exe -PassThru
 Start-Sleep -Seconds 6
@@ -110,6 +132,16 @@ if ($proc.HasExited) {
         } else { Write-Host "  start page '$tag': OK"; Stop-Process -Id $t.Id -Force }
     }
     Remove-Item Env:\SPATIA_START_PAGE
+    foreach ($switch in 'SPATIA_DIAG_NO_MICA', 'SPATIA_DIAG_NO_ICON', 'SPATIA_DIAG_MINIMAL') {
+        Remove-Item $logFile -ErrorAction SilentlyContinue
+        Set-Item "Env:\$switch" '1'
+        $t = Start-Process $exe -PassThru
+        Start-Sleep -Seconds 6
+        if ($t.HasExited) { Write-Host "  $switch : CRASHED (exit $($t.ExitCode))" } else { Write-Host "  $switch : OK (no crash)"; Stop-Process -Id $t.Id -Force }
+        if (Test-Path $logFile) { Get-Content $logFile -Tail 3 | ForEach-Object { Write-Host "      $_" } }
+        Remove-Item "Env:\$switch"
+    }
+    Analyze-Dump
     Fail "Spatia crashed during startup (exit code $($proc.ExitCode))"
 }
 $win = Wait-Window $proc 'Spatia'

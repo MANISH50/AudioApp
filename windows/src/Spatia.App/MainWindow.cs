@@ -16,14 +16,28 @@ public sealed partial class MainWindow : Window, IDisposable
     public MainWindow()
     {
         Title = UiStrings.S["AppTitle"];
-        try { SystemBackdrop = new MicaBackdrop(); } catch (Exception ex) { AppLog.Info("startup", "Mica unavailable: " + ex.Message); }
+        // Diagnostics-only switches (SPATIA_DIAGNOSTICS=1) let CI isolate window-level startup crashes.
+        static bool Diag(string name) => AppLog.DiagnosticsEnabled && System.Environment.GetEnvironmentVariable(name) == "1";
+        if (!Diag("SPATIA_DIAG_NO_MICA"))
+        {
+            try { SystemBackdrop = new MicaBackdrop(); } catch (Exception ex) { AppLog.Info("startup", "Mica unavailable: " + ex.Message); }
+        }
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1100, 820));
         var icon = Path.Combine(AppContext.BaseDirectory, "Spatia.ico");
-        if (File.Exists(icon)) AppWindow.SetIcon(icon);
+        if (File.Exists(icon) && !Diag("SPATIA_DIAG_NO_ICON")) AppWindow.SetIcon(icon);
 
-        AppLog.Info("startup", "building main view");
-        Shell = new Shell(this);
-        Content = Shell;
+        if (Diag("SPATIA_DIAG_MINIMAL"))
+        {
+            AppLog.Info("startup", "diagnostics: minimal content");
+            Content = new Microsoft.UI.Xaml.Controls.TextBlock { Text = "Spatia diagnostics: minimal window" };
+        }
+        else
+        {
+            AppLog.Info("startup", "building main view");
+            Shell = new Shell(this);
+            Content = Shell;
+        }
+        if (Content is FrameworkElement fe) fe.Loaded += (_, _) => AppLog.Info("startup", "window content loaded");
         Closed += (_, _) => { AppLog.Info("shutdown", "window closed"); Dispose(); };
     }
 
