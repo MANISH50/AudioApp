@@ -20,12 +20,18 @@ public partial class App : Application, IDisposable
             if (e.ExceptionObject is Exception ex) Fatal.ReportAndExit("unhandled", ex);
         };
         TaskScheduler.UnobservedTaskException += (_, e) => { AppLog.Error("background task", e.Exception); e.SetObserved(); };
+        if (AppLog.DiagnosticsEnabled) AppDomain.CurrentDomain.FirstChanceException += (_, e) => AppLog.FirstChance(e.Exception);
         UnhandledException += OnUnhandled;
 
         try
         {
             InitializeComponent();
             UiStrings.Load(System.Globalization.CultureInfo.CurrentUICulture);
+            if (AppLog.DiagnosticsEnabled)
+            {
+                DebugSettings.BindingFailed += (_, e) => AppLog.Info("xaml binding", e.Message);
+                DebugSettings.XamlResourceReferenceFailed += (_, e) => AppLog.Info("xaml resource", e.Message);
+            }
             AppLog.Info("startup", $"strings loaded ({UiStrings.S.Keys.Count})");
         }
         catch (Exception ex) { Fatal.ReportAndExit("loading resources", ex); }

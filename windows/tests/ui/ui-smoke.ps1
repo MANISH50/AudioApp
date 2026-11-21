@@ -17,13 +17,22 @@ public static class Win32 { [DllImport("user32.dll")] public static extern bool 
 "@
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $env:SPATIA_NO_DIALOGS = '1'   # failures go to the log and exit code instead of blocking on a dialog
+$env:SPATIA_DIAGNOSTICS = '1'  # also log first-chance exceptions, to pinpoint native crashes
 $A = [System.Windows.Automation.AutomationElement]
 $T = [System.Windows.Automation.TreeScope]
 $P = [System.Windows.Automation.PropertyCondition]
 $logFile = Join-Path $env:LOCALAPPDATA 'Spatia\logs\spatia.log'
 
 function Step($m) { Write-Host "=== $m" }
-function Fail($m) { if (Test-Path $logFile) { Write-Host '--- spatia.log ---'; Get-Content $logFile | Write-Host }; throw $m }
+$script:started = Get-Date
+function Fail($m) {
+    if (Test-Path $logFile) { Write-Host '--- spatia.log ---'; Get-Content $logFile | Write-Host; Copy-Item $logFile (Join-Path $OutDir 'spatia.log') -ErrorAction SilentlyContinue }
+    Write-Host '--- Windows Application event log (Spatia) ---'
+    Get-WinEvent -FilterHashtable @{ LogName = 'Application'; StartTime = $script:started } -ErrorAction SilentlyContinue |
+        Where-Object { $_.Message -match 'Spatia' } | Select-Object -First 8 |
+        ForEach-Object { Write-Host "[$($_.TimeCreated) id=$($_.Id) $($_.ProviderName)]"; Write-Host $_.Message }
+    throw $m
+}
 
 function Wait-Window([System.Diagnostics.Process] $proc, [string] $title, [int] $seconds = 60) {
     $cond = New-Object System.Windows.Automation.AndCondition(
@@ -147,6 +156,7 @@ foreach ($must in 'main window shown', 'user interface ready') {
     if (-not ($log -match [regex]::Escape($must))) { Fail "Log is missing '$must'" }
 }
 $errors = $log | Where-Object { $_ -match ' ERROR ' }
+# First-chance exceptions are expected occasionally (handled ones); they are printed above for review.
 if ($errors) { Fail "Errors in log:`n$($errors -join "`n")" }
 Copy-Item $logFile (Join-Path $OutDir 'spatia.log')
 

@@ -21,6 +21,21 @@ public static class AppLog
     }
 
     public static void Info(string stage, string message) => Write("INFO", stage, message);
+
+    private static int _firstChance;
+
+    /// <summary>
+    /// Diagnostics mode only (SPATIA_DIAGNOSTICS=1, set by CI): records every exception as it is thrown, even ones the
+    /// UI framework later turns into a native crash that bypasses normal handlers. Capped at 200 entries.
+    /// </summary>
+    public static void FirstChance(Exception ex)
+    {
+        if (Interlocked.Increment(ref _firstChance) > 200) return;
+        Write("DEBUG", "first-chance", string.Create(CultureInfo.InvariantCulture,
+            $"{ex.GetType().FullName} HRESULT 0x{ex.HResult:X8}: {ex.Message}{System.Environment.NewLine}{ex.StackTrace}"));
+    }
+
+    public static bool DiagnosticsEnabled => System.Environment.GetEnvironmentVariable("SPATIA_DIAGNOSTICS") == "1";
     public static void Error(string stage, string message) => Write("ERROR", stage, message);
     /// <summary>Logs the exception with its HRESULT and inner exceptions (WinRT errors often hide the cause there).</summary>
     public static void Error(string stage, Exception ex) =>
