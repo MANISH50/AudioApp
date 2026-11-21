@@ -24,7 +24,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: gradle/actions/setup-gradle@18f1c6724d5bcb313b5c5ef536430a31e5c5b455 # v4.4.0
       - name: Engine tests (JVM + native) and native libraries
         working-directory: android
         run: ./gradlew :core-dsp:allTests :core-dsp:linkReleaseSharedMingwX64 :core-dsp:linkReleaseSharedLinuxX64
