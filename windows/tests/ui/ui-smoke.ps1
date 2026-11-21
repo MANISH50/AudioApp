@@ -200,7 +200,14 @@ if (Find-ByName $win 'Open file' 1) { Fail 'The file player should be gone' }
 
 Step 'Home: connected state, settings written to spatia.txt'
 Select-Item (Find-ById $win 'nav-home')
-if (-not (Find-ById $win 'apo-disconnect')) { Fail 'Home does not show the connected state (Disconnect button)' }
+$disc = $null
+$deadline = (Get-Date).AddSeconds(15)
+while (-not $disc -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 300; $disc = Find-ById $win 'apo-disconnect' }
+if (-not $disc) {
+    $st = Find-ById $win 'apo-state'
+    $stText = if ($st) { $st.Current.Name } else { '(state text not found)' }
+    Fail "Home does not show the connected state (Disconnect button). Equalizer APO state shown: $stText"
+}
 $before = Wait-Config { param($t) $t -match 'Preamp:' } 'no Preamp line after startup'
 
 Step 'Home: change mode'

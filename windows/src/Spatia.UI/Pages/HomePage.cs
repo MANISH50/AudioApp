@@ -36,6 +36,7 @@ public sealed partial class HomePage : UserControl
         AutomationProperties.SetAutomationId(_download, "apo-download");
         AutomationProperties.SetAutomationId(_connect, "apo-connect");
         AutomationProperties.SetAutomationId(_disconnect, "apo-disconnect");
+        AutomationProperties.SetAutomationId(_apoState, "apo-state");
         AutomationProperties.SetLiveSetting(_apoState, Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Polite);
 
         _modes = Choices(s["ModesTitle"], Modes.Select(m => s["Mode_" + m]), i => app.ApplyMode(Modes[i]), columns: 3);
