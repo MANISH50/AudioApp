@@ -8,7 +8,7 @@ namespace Spatia.App;
 /// Standard WinUI application (XAML-generated entry point and type metadata). Any failure before the window is up is
 /// logged and shown in a native dialog, then the process exits: Spatia never keeps running invisibly.
 /// </summary>
-public partial class App : Application
+public partial class App : Application, IDisposable
 {
     private MainWindow? _window;
 
@@ -56,5 +56,11 @@ public partial class App : Application
             AppLog.Info("startup", "main window shown");
         }
         catch (Exception ex) { Fatal.ReportAndExit("creating the main window", ex); }
+    }
+
+    public void Dispose()
+    {
+        _window?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
