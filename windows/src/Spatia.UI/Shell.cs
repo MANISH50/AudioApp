@@ -52,7 +52,7 @@ public sealed partial class Shell : UserControl, IDisposable
         _nav.SelectionChanged += (_, e) =>
         {
             if (e.SelectedItemContainer?.Tag is not string tag || !_pages.TryGetValue(tag, out var make)) return;
-            try { _nav.Content = make(); }
+            try { _nav.Content = BuildPage(tag); }
             catch (Exception ex)
             {
                 AppLog.Error("page " + tag, ex);
@@ -62,16 +62,45 @@ public sealed partial class Shell : UserControl, IDisposable
         // Show the first page right away, so the window is never empty. Selecting a NavigationView item only works
         // once the control is in the visual tree (doing it here threw 0x80070490 "Element not found"), so the
         // selection highlight is applied on Loaded.
-        _nav.Content = _pages["player"]();
+        var start = AppLog.DiagnosticsEnabled && System.Environment.GetEnvironmentVariable("SPATIA_START_PAGE") is { } p && _pages.ContainsKey(p) ? p : "player";
+        _startTag = start;
+        _nav.Content = BuildPage(start);
         Loaded += SelectFirstPageOnce;
+        LayoutUpdated += LogFirstLayout;
         _app.VolumeWarning += ShowVolumeWarning;
         AppLog.Info("startup", "user interface ready");
+    }
+
+    private string _startTag = "player";
+    private bool _firstLayoutLogged;
+
+    private void LogFirstLayout(object? sender, object e)
+    {
+        if (_firstLayoutLogged) return;
+        _firstLayoutLogged = true;
+        LayoutUpdated -= LogFirstLayout;
+        AppLog.Info("startup", "first layout pass completed");
+    }
+
+    /// <summary>Creates a page, logging each step so a crash during layout can be traced to the page.</summary>
+    private FrameworkElement BuildPage(string tag)
+    {
+        AppLog.Info("page " + tag, "constructing");
+        var page = _pages[tag]();
+        page.Loaded += (_, _) => AppLog.Info("page " + tag, "loaded");
+        AppLog.Info("page " + tag, "constructed");
+        return page;
     }
 
     private void SelectFirstPageOnce(object sender, RoutedEventArgs e)
     {
         Loaded -= SelectFirstPageOnce;
-        try { _nav.SelectedItem = _nav.MenuItems[0]; }
+        AppLog.Info("startup", "shell loaded");
+        try
+        {
+            var item = _nav.MenuItems.OfType<NavigationViewItem>().First(i => (string)i.Tag == _startTag);
+            _nav.SelectedItem = item;
+        }
         catch (Exception ex) { AppLog.Error("selecting first page", ex); }
     }
 

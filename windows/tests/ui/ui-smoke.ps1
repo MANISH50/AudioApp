@@ -94,6 +94,24 @@ if (-not (Test-Path $startMenu)) { Fail 'Start-menu shortcut missing' }
 # ---------------------------------------------------------------- launch
 Step 'Launch installed app and wait for a visible window'
 $proc = Start-Process $exe -PassThru
+Start-Sleep -Seconds 6
+if ($proc.HasExited) {
+    # Crash during startup: find which page triggers it by starting on each page in turn (diagnostics mode).
+    Write-Host "Spatia exited with code $($proc.ExitCode). Bisecting by start page:"
+    if (Test-Path $logFile) { Get-Content $logFile | Write-Host }
+    foreach ($tag in 'status', 'other', 'output', 'sound', 'player') {
+        Remove-Item $logFile -ErrorAction SilentlyContinue
+        $env:SPATIA_START_PAGE = $tag
+        $t = Start-Process $exe -PassThru
+        Start-Sleep -Seconds 6
+        if ($t.HasExited) {
+            Write-Host "  start page '$tag': CRASHED (exit $($t.ExitCode)); last log lines:"
+            if (Test-Path $logFile) { Get-Content $logFile -Tail 6 | ForEach-Object { Write-Host "      $_" } }
+        } else { Write-Host "  start page '$tag': OK"; Stop-Process -Id $t.Id -Force }
+    }
+    Remove-Item Env:\SPATIA_START_PAGE
+    Fail "Spatia crashed during startup (exit code $($proc.ExitCode))"
+}
 $win = Wait-Window $proc 'Spatia'
 Write-Host "Window visible: handle $($win.Current.NativeWindowHandle), $($win.Current.BoundingRectangle)"
 
