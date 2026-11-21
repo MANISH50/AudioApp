@@ -79,6 +79,17 @@ class AppLogicTest {
         assertEquals(io.spatia.dsp.model.Environment.OFF, f.environment)
     }
 
+    @Test fun effectPanelRequestValidation() {
+        val a = android.media.audiofx.AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL
+        assertEquals(io.spatia.app.system.EffectPanelRequest(42, "com.apple.android.music"),
+            io.spatia.app.system.EffectPanelRequest.parse(a, 42, "com.apple.android.music"))
+        assertNull(io.spatia.app.system.EffectPanelRequest.parse(a, 0, "com.x.y"))       // global mix not allowed
+        assertNull(io.spatia.app.system.EffectPanelRequest.parse(a, -4, "com.x.y"))
+        assertNull(io.spatia.app.system.EffectPanelRequest.parse("android.intent.action.VIEW", 42, "com.x.y"))
+        assertEquals("unknown", io.spatia.app.system.EffectPanelRequest.parse(a, 7, "../evil")!!.packageName)
+        assertEquals("unknown", io.spatia.app.system.EffectPanelRequest.parse(a, 7, null)!!.packageName)
+    }
+
     @Test fun intensityLabels() {
         fun t(v: Float) = io.spatia.app.ui.intensityText(v, "Subtle", "Default", "Intense")
         assertEquals("Default", t(0.5f))

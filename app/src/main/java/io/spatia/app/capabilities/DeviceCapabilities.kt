@@ -43,7 +43,7 @@ class DeviceCapabilities(private val context: Context) {
             },
         )
         add(Capability(R.string.cap_spatial_app, CapStatus.AVAILABLE, R.string.cap_spatial_app_reason))
-        add(Capability(R.string.cap_environment, CapStatus.LIMITED, R.string.cap_environment_reason))
+        add(Capability(R.string.cap_environment, CapStatus.AVAILABLE, R.string.cap_environment_reason))
 
         val ht = app.headTracker
         add(
@@ -62,6 +62,11 @@ class DeviceCapabilities(private val context: Context) {
                 else -> Capability(R.string.cap_system_wide, CapStatus.UNAVAILABLE, R.string.cap_system_wide_none)
             },
         )
+        add(
+            if (se.environmentalReverbSupported) Capability(R.string.cap_environment_other, CapStatus.LIMITED, R.string.cap_environment_other_ok)
+            else Capability(R.string.cap_environment_other, CapStatus.UNAVAILABLE, R.string.cap_environment_other_no),
+        )
+        add(Capability(R.string.cap_global, CapStatus.LIMITED, R.string.cap_global_reason))
         add(Capability(R.string.cap_system_spatial, CapStatus.UNAVAILABLE, R.string.cap_system_spatial_reason))
 
         val usb = app.outputs.state.value.connected.firstOrNull { it.type == OutputType.USB }

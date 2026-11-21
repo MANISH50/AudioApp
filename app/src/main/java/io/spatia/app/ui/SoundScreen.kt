@@ -45,7 +45,25 @@ fun SoundScreen(vm: MainViewModel, modifier: Modifier = Modifier) {
     val corrPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { it?.let(vm::importCorrection) }
     val irPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { it?.let(vm::importImpulse) }
 
+    val streams by vm.activeMediaStreams.collectAsStateWithLifecycle()
+    val ownPlaying by vm.ownPlaying.collectAsStateWithLifecycle()
+    val sessions by vm.sessions.collectAsStateWithLifecycle()
+    val otherAppUnprocessed = streams - (if (ownPlaying) 1 else 0) > 0 &&
+        sessions.none { it.kind != io.spatia.app.system.SessionEffectKind.FAILED }
+
     Column(modifier.verticalScroll(rememberScrollState()).padding(vertical = 8.dp)) {
+        if (otherAppUnprocessed) {
+            androidx.compose.material3.OutlinedCard(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.banner_other_app_title), style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.banner_other_app_text), style = MaterialTheme.typography.bodyMedium)
+                    androidx.compose.material3.TextButton(onClick = { vm.requestedTab.value = 3 }) {
+                        Text(stringResource(R.string.banner_open_apps))
+                    }
+                }
+            }
+        }
         Section(stringResource(R.string.modes_title)) {
             Text(stringResource(R.string.modes_for_output, stringResource(outputLabel(cfg.output))), style = MaterialTheme.typography.bodySmall)
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

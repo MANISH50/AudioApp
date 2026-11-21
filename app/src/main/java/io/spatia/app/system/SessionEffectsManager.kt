@@ -3,6 +3,7 @@ package io.spatia.app.system
 import android.content.Context
 import android.media.audiofx.AudioEffect
 import android.media.audiofx.DynamicsProcessing
+import android.media.audiofx.EnvironmentalReverb
 import android.media.audiofx.Equalizer
 import android.util.Log
 import io.spatia.app.audio.AudioEngine
@@ -11,7 +12,10 @@ import io.spatia.app.data.AppState
 import io.spatia.dsp.SafetyPolicy
 import io.spatia.dsp.filters.FilterSpec
 import io.spatia.dsp.filters.ToneCurves
+import io.spatia.dsp.model.Environment
+import io.spatia.dsp.model.I3dl2Params
 import io.spatia.dsp.model.OutputSafety
+import io.spatia.dsp.model.toI3dl2
 import io.spatia.dsp.model.SoundSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -24,7 +28,14 @@ import kotlinx.coroutines.launch
 
 enum class SessionEffectKind { DYNAMICS_PROCESSING, EQUALIZER_ONLY, FAILED }
 
-data class SessionInfo(val sessionId: Int, val packageName: String, val kind: SessionEffectKind)
+data class SessionInfo(
+    val sessionId: Int,
+    val packageName: String,
+    val kind: SessionEffectKind,
+    /** True when an environment (Hall, Cinema...) is currently applied to this session via the platform reverb. */
+    val environmentActive: Boolean = false,
+    val isGlobal: Boolean = false,
+)
 
 /** Target values for one session's effect, computed from the active settings. Pure data for ramping/tests. */
 data class SessionTargets(val bandGainsDb: FloatArray, val inputGainDb: Float, val limiterDb: Float, val night: Boolean) {
@@ -34,17 +45,28 @@ data class SessionTargets(val bandGainsDb: FloatArray, val inputGainDb: Float, v
 }
 
 /**
- * System-wide enhancement through the documented session-based AudioEffect API. Only sessions that their owning app
- * announces with ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION are touched. Spatial/HRTF processing is impossible here
- * (no access to the PCM), so this path provides EQ, tone, voice clarity, loudness compensation, correction curves,
- * per-app boost, night compression and a limiter.
+ * Enhancement for other apps through the documented AudioEffect API:
+ *  - sessions that their owning app announces (ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION or the effect-panel intent);
+ *  - optionally the global output mix (session 0, "Global mode"). That route is deprecated by Android and works on
+ *    many but not all devices, so it is opt-in.
+ * No PCM access is possible here, so Spatia's own DSP can't run. Instead: DynamicsProcessing (EQ, tone, voice,
+ * loudness compensation, correction, night, limiter, per-app boost) plus the platform EnvironmentalReverb as an
+ * insert effect for environments (dry signal kept, room added on top).
  */
 class SessionEffectsManager(
     private val context: Context,
     private val scope: CoroutineScope,
     private val engine: AudioEngine,
 ) {
-    private class Attached(val info: SessionInfo, val dp: DynamicsProcessing?, val eq: Equalizer?, var current: SessionTargets?)
+    private class Attached(
+        var info: SessionInfo,
+        val dp: DynamicsProcessing?,
+        val eq: Equalizer?,
+        var current: SessionTargets?,
+        var rev: EnvironmentalReverb? = null,
+        var revEnv: Environment = Environment.OFF,
+        var revLevel: Int = I3dl2Params.SILENT_MB,
+    )
 
     private val attached = LinkedHashMap<Int, Attached>()
     private val _sessions = MutableStateFlow<List<SessionInfo>>(emptyList())
@@ -54,6 +76,7 @@ class SessionEffectsManager(
 
     val dynamicsProcessingSupported: Boolean by lazy { effectSupported(AudioEffect.EFFECT_TYPE_DYNAMICS_PROCESSING) }
     val equalizerSupported: Boolean by lazy { effectSupported(AudioEffect.EFFECT_TYPE_EQUALIZER) }
+    val environmentalReverbSupported: Boolean by lazy { effectSupported(AudioEffect.EFFECT_TYPE_ENV_REVERB) }
 
     private fun effectSupported(type: java.util.UUID) = try {
         AudioEffect.queryEffects()?.any { it.type == type } == true
@@ -62,25 +85,39 @@ class SessionEffectsManager(
     fun startObserving() {
         if (observing) return
         observing = true
-        engine.config.onEach { applyAll(it) }.launchIn(scope)
+        engine.config.onEach { cfg ->
+            syncGlobal(cfg.app.globalMode && cfg.app.systemWideEnabled)
+            applyAll(cfg)
+        }.launchIn(scope)
     }
 
+    /** A session announced by another app (validated by the caller and again here). */
     fun open(sessionId: Int, packageName: String) {
-        if (sessionId <= 0 || attached.containsKey(sessionId) || attached.size >= MAX_SESSIONS) return
+        if (sessionId <= 0) return
         val pkg = packageName.take(255).takeIf { AppState.PACKAGE_RX.matches(it) } ?: "unknown"
         if (pkg == context.packageName) return // our own player is processed in-app
+        attach(sessionId, pkg, global = false)
+    }
+
+    private fun syncGlobal(enabled: Boolean) {
+        if (enabled && !attached.containsKey(GLOBAL_SESSION)) attach(GLOBAL_SESSION, "global", global = true)
+        else if (!enabled && attached.containsKey(GLOBAL_SESSION)) close(GLOBAL_SESSION)
+    }
+
+    private fun attach(sessionId: Int, pkg: String, global: Boolean) {
+        if (attached.containsKey(sessionId) || attached.size >= MAX_SESSIONS) return
         val a = try {
             if (dynamicsProcessingSupported) {
-                Attached(SessionInfo(sessionId, pkg, SessionEffectKind.DYNAMICS_PROCESSING),
+                Attached(SessionInfo(sessionId, pkg, SessionEffectKind.DYNAMICS_PROCESSING, isGlobal = global),
                     DynamicsProcessing(0, sessionId, buildConfig()).apply { enabled = true }, null, null)
             } else if (equalizerSupported) {
-                Attached(SessionInfo(sessionId, pkg, SessionEffectKind.EQUALIZER_ONLY), null,
+                Attached(SessionInfo(sessionId, pkg, SessionEffectKind.EQUALIZER_ONLY, isGlobal = global), null,
                     Equalizer(0, sessionId).apply { enabled = true }, null)
             } else null
         } catch (e: RuntimeException) {
             Log.w(TAG, "Could not attach effect to a session")
             null
-        } ?: Attached(SessionInfo(sessionId, pkg, SessionEffectKind.FAILED), null, null, null)
+        } ?: Attached(SessionInfo(sessionId, pkg, SessionEffectKind.FAILED, isGlobal = global), null, null, null)
         attached[sessionId] = a
         publish()
         applyAll(engine.config.value)
@@ -99,10 +136,13 @@ class SessionEffectsManager(
     }
 
     private fun releaseQuietly(a: Attached) {
-        try { a.dp?.release(); a.eq?.release() } catch (_: RuntimeException) { }
+        try { a.dp?.release(); a.eq?.release(); a.rev?.release() } catch (_: RuntimeException) { }
+        a.rev = null
     }
 
-    private fun publish() { _sessions.value = attached.values.map { it.info } }
+    private fun publish() {
+        _sessions.value = attached.values.map { it.info.copy(environmentActive = it.rev != null && it.revEnv != Environment.OFF) }
+    }
 
     private fun buildConfig(): DynamicsProcessing.Config {
         val cfg = DynamicsProcessing.Config.Builder(
@@ -124,23 +164,76 @@ class SessionEffectsManager(
         rampJob?.cancel()
         if (attached.isEmpty()) return
         val safety = OutputSafety.forType(cfg.output)
+        val env = cfg.settings.environment
+        val roomTarget = env.preset?.toI3dl2(cfg.settings.environmentIntensity)
         rampJob = scope.launch {
-            // Smooth parameter ramps: ~200 ms in 8 steps so changes never click.
             val targets = attached.mapValues { (_, a) ->
-                computeTargets(cfg.settings, safety, cfg.volume.attenuationDb, cfg.app.appBoostDb[a.info.packageName] ?: 0f,
-                    hasLimiter = a.dp != null)
+                val boost = if (a.info.isGlobal) 0f else cfg.app.appBoostDb[a.info.packageName] ?: 0f
+                computeTargets(cfg.settings, safety, cfg.volume.attenuationDb, boost, hasLimiter = a.dp != null)
             }
+            // Environment: (re)create the platform reverb when the space changes, starting silent.
+            for (a in attached.values) prepareReverb(a, env, roomTarget)
+            publish()
+            val roomFrom = attached.mapValues { it.value.revLevel }
+            val roomTo = roomTarget?.roomLevel ?: I3dl2Params.SILENT_MB
+            // Smooth parameter ramps: ~200 ms in 8 steps so changes never click.
             for (step in 1..RAMP_STEPS) {
                 val t = step.toFloat() / RAMP_STEPS
                 for ((id, a) in attached) {
                     val target = targets[id] ?: continue
                     val from = a.current ?: target
                     apply(a, interpolate(from, target, t))
+                    val r0 = roomFrom[id] ?: I3dl2Params.SILENT_MB
+                    setRoomLevel(a, (r0 + (roomTo - r0) * t).toInt())
                 }
                 delay(RAMP_MS / RAMP_STEPS)
             }
-            for ((id, a) in attached) a.current = targets[id]
+            for ((id, a) in attached) {
+                a.current = targets[id]
+                if (roomTarget == null && a.rev != null) {
+                    try { a.rev?.release() } catch (_: RuntimeException) { }
+                    a.rev = null; a.revEnv = Environment.OFF; a.revLevel = I3dl2Params.SILENT_MB
+                }
+            }
+            publish()
         }
+    }
+
+    private fun prepareReverb(a: Attached, env: Environment, p: I3dl2Params?) {
+        if (p == null || !environmentalReverbSupported || a.info.kind == SessionEffectKind.FAILED) return
+        try {
+            if (a.rev == null || a.revEnv != env) {
+                a.rev?.release()
+                a.rev = EnvironmentalReverb(0, a.info.sessionId)
+                a.revLevel = I3dl2Params.SILENT_MB
+                a.revEnv = env
+            }
+            val r = a.rev ?: return
+            r.roomLevel = a.revLevel.toShort()
+            r.roomHFLevel = p.roomHFLevel.toShort()
+            r.decayTime = p.decayTime
+            r.decayHFRatio = p.decayHFRatio.toShort()
+            r.reflectionsLevel = p.reflectionsLevel.toShort()
+            r.reflectionsDelay = p.reflectionsDelay
+            r.reverbLevel = p.reverbLevel.toShort()
+            r.reverbDelay = p.reverbDelay
+            r.diffusion = p.diffusion.toShort()
+            r.density = p.density.toShort()
+            r.enabled = true
+        } catch (e: RuntimeException) {
+            // Some devices only offer the reverb as an auxiliary (send) effect, which other apps' players never use.
+            Log.w(TAG, "Environment reverb not available for this session")
+            try { a.rev?.release() } catch (_: RuntimeException) { }
+            a.rev = null; a.revEnv = Environment.OFF
+        }
+    }
+
+    private fun setRoomLevel(a: Attached, mb: Int) {
+        val r = a.rev ?: return
+        try {
+            r.roomLevel = mb.coerceIn(I3dl2Params.SILENT_MB, 0).toShort()
+            a.revLevel = mb
+        } catch (_: RuntimeException) { }
     }
 
     private fun apply(a: Attached, t: SessionTargets) {
@@ -170,6 +263,8 @@ class SessionEffectsManager(
 
     companion object {
         private const val TAG = "Spatia"
+        /** The global output mix. Deprecated by Android for insert effects; used only in opt-in Global mode. */
+        const val GLOBAL_SESSION = 0
         const val MAX_SESSIONS = 16
         private const val RAMP_STEPS = 8
         private const val RAMP_MS = 200L

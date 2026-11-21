@@ -23,11 +23,13 @@ class SpatiaApp : Application() {
     val engine by lazy { AudioEngine(appScope, settings, outputs, volume, headTracker) }
     val sessionEffects by lazy { SessionEffectsManager(this, appScope, engine) }
     val capabilities by lazy { DeviceCapabilities(this) }
+    val playbackWatcher by lazy { io.spatia.app.system.PlaybackWatcher(this) }
 
     override fun onCreate() {
         super.onCreate()
         outputs.start()
         volume.start()
         engine.start()
+        playbackWatcher.start()
     }
 }

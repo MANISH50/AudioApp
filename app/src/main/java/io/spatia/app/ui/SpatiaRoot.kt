@@ -47,6 +47,8 @@ fun SpatiaRoot(vm: MainViewModel) {
     val snackbar = remember { SnackbarHostState() }
     val ctx = LocalContext.current
     val msg by vm.message.collectAsStateWithLifecycle()
+    val requested by vm.requestedTab.collectAsStateWithLifecycle()
+    LaunchedEffect(requested) { requested?.let { tab = it; vm.requestedTab.value = null } }
     LaunchedEffect(msg) {
         msg?.let { (res, detail) ->
             snackbar.showSnackbar(ctx.getString(res) + (detail?.let { " $it" } ?: ""))

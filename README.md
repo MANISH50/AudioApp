@@ -31,7 +31,9 @@ Dependencies are pinned in `gradle/libs.versions.toml` and checked against SHA-2
 | Crossfeed, psychoacoustic bass, equal-loudness compensation, hearing profile, room IR convolution, A/B, meters, mono/balance, sleep timer | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Bit-perfect USB DAC output | ❌ | ❌ | ❌ | ❌ | ✅ if the DAC supports it | ✅ same |
 | Enhancing other apps (EQ, tone, correction, per-app boost, night, limiter) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
-| Spatial 3D / head tracking / crossfeed / environments / room for other apps | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Environments for other apps (approximated with Android's EnvironmentalReverb) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
+| Global mode: all apps through session 0 (opt-in, deprecated route) | ⚠️ device-dependent | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
+| Spatial 3D / head tracking / crossfeed / imported room IR for other apps | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ⚠️ **System-wide limits.** Spatia can only process apps that broadcast `ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION`. Many local music players do. Most streaming, video, game and call apps don't, and those can't be enhanced. Global session 0 is deprecated and isn't used. On devices without the DynamicsProcessing effect, Spatia falls back to the basic Equalizer with no boost, because there's no limiter. The system-wide service has to be started from the app; it doesn't start on boot, which avoids an extra permission.
 
@@ -40,6 +42,16 @@ Dependencies are pinned in `gradle/libs.versions.toml` and checked against SHA-2
 The Sound tab's **Environment** section places the music in a space. Each one is a parallel send effect: the original audio passes through unchanged at full level, and the room is added on top. The rooms use pre-delay, early reflections, an 8-line feedback delay network and, for some spaces, a ping-pong echo. The effect is band-limited so it never muddies the bass.
 
 The **intensity meter** has its centre at each space's designed sound. Moving it left makes the room subtler, and fully left turns it off. Moving it right makes it louder (up to +6 dB) and longer (up to 1.5× the decay time). Echo feedback is hard-capped so echoes always fade away. The limiter still protects the output.
+
+## Using Spatia with Apple Music, Spotify, YouTube and other apps
+
+Android only lets one app change another app's sound through audio effects attached to that app's audio session. Spatia tries three routes, in this order:
+
+1. **The app announces its session.** This is automatic once **Apps → Enhance other apps** is on. Pause and resume playback after turning it on.
+2. **The app's Equaliser button.** Many players (including Apple Music on many phones: Settings → Playback → Equaliser) open the system's equaliser picker. Choose Spatia and it attaches to that app's session directly.
+3. **Global mode (experimental).** Attaches to the global output mix (session 0). Android has deprecated this, so some phones ignore it, and it may clash with other equaliser apps.
+
+The **Apps** tab shows what's happening right now, and the Sound tab warns when the audio playing isn't being enhanced. Through these routes you get EQ, tone, voice clarity, loudness compensation, headphone correction, night mode, per-app boost, the limiter, and environments rendered by Android's reverb. Android's reverb can't make discrete repeating echoes, so Echoing, Tunnel, Stadium and the Cinema slap sound softer than in Spatia's own player. Spatial 3D, head tracking, crossfeed and imported room responses need the audio samples themselves, so they're only possible in Spatia's player. If an app uses none of the three routes, only Spatia's player can be enhanced.
 
 ## Known gaps
 

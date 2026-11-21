@@ -67,6 +67,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _sleepMinutes = MutableStateFlow(0)
     val sleepMinutes: StateFlow<Int> = _sleepMinutes
 
+    /** Tab the UI should switch to (e.g. after another app opens Spatia as its equaliser). */
+    val requestedTab = MutableStateFlow<Int?>(null)
+    val activeMediaStreams = app.playbackWatcher.activeMediaStreams
+    val ownPlaying = app.engine.ownPlaying
+
     private var controller: MediaController? = null
     private var sleepJob: Job? = null
 
@@ -241,6 +246,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         app.settings.update { it.copy(systemWideEnabled = enable) }
         val ctx = getApplication<Application>()
         if (enable) SessionEffectService.start(ctx) else SessionEffectService.stop(ctx)
+    }
+
+    fun setGlobalMode(enable: Boolean) {
+        app.settings.update { it.copy(globalMode = enable, systemWideEnabled = it.systemWideEnabled || enable) }
+        if (enable) SessionEffectService.start(getApplication())
+    }
+
+    fun attachFromEffectPanel(req: io.spatia.app.system.EffectPanelRequest) {
+        app.settings.update { it.copy(systemWideEnabled = true) }
+        SessionEffectService.start(getApplication())
+        app.sessionEffects.startObserving()
+        app.sessionEffects.open(req.sessionId, req.packageName)
+        requestedTab.value = 3
     }
 
     fun setAppBoost(pkg: String, db: Float) = app.settings.update { it.copy(appBoostDb = it.appBoostDb + (pkg to db)) }

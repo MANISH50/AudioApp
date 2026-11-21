@@ -47,6 +47,10 @@ class PlaybackService : MediaSessionService() {
             .setHandleAudioBecomingNoisy(true) // pause when headphones are unplugged
             .build()
         player.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                app.engine.ownPlaying.value = isPlaying
+            }
+
             override fun onTracksChanged(tracks: Tracks) {
                 app.engine.replayGainDb.value = readReplayGain(tracks) ?: 0f
             }

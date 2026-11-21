@@ -3,6 +3,7 @@ package io.spatia.app.audio
 import io.spatia.app.data.AppState
 import io.spatia.app.data.SettingsRepository
 import io.spatia.app.output.OutputMonitor
+import io.spatia.app.player.ChainHost
 import io.spatia.app.output.OutputState
 import io.spatia.app.safety.VolumeGuard
 import io.spatia.app.safety.VolumeState
@@ -45,11 +46,14 @@ class AudioEngine(
     private val outputs: OutputMonitor,
     private val volume: VolumeGuard,
     private val headTracker: HeadTrackerSource,
-) {
+) : ChainHost {
     private val chains = CopyOnWriteArraySet<DspChain>()
     private val impulse = MutableStateFlow<WavReader.Wav?>(null)
     val hasImpulse: Boolean get() = impulse.value != null
-    @Volatile var meters: Meters? = null
+    @Volatile override var meters: Meters? = null
+    override val bitPerfect: Boolean get() = config.value.app.bitPerfectUsb
+    /** True while Spatia's own player is playing (set by PlaybackService). */
+    val ownPlaying = MutableStateFlow(false)
     val replayGainDb = MutableStateFlow(0f)
 
     val config: StateFlow<EffectiveConfig> = combine(repo.state, outputs.state, volume.state) { app, out, vol ->
@@ -75,13 +79,13 @@ class AudioEngine(
     }
 
     // ---- chain registration (called from the audio thread's processor) ----
-    fun register(chain: DspChain) {
+    override fun register(chain: DspChain) {
         chains += chain
         push(chain, config.value)
         attachConvolver(chain, impulse.value)
     }
 
-    fun unregister(chain: DspChain) { chains -= chain }
+    override fun unregister(chain: DspChain) { chains -= chain }
 
     private fun push(chain: DspChain, cfg: EffectiveConfig) {
         val s = cfg.settings.copy(preampDb = (cfg.settings.preampDb + replayGainDb.value).coerceIn(-24f, 6f))

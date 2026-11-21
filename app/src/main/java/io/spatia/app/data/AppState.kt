@@ -15,6 +15,8 @@ data class AppState(
     /** Per-app boost in dB for system-wide sessions, keyed by package name. Capped at use time. */
     val appBoostDb: Map<String, Float> = emptyMap(),
     val systemWideEnabled: Boolean = false,
+    /** Opt-in: also apply effects to the global output mix (session 0). Deprecated route; device-dependent. */
+    val globalMode: Boolean = false,
     val bitPerfectUsb: Boolean = false,
     val doseTrackingEnabled: Boolean = false,
     val doseWeekStartEpochDay: Long = 0,

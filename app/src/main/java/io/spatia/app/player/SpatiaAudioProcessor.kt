@@ -4,7 +4,6 @@ import androidx.media3.common.C
 import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.BaseAudioProcessor
 import androidx.media3.common.util.UnstableApi
-import io.spatia.app.audio.AudioEngine
 import io.spatia.dsp.DspChain
 import io.spatia.dsp.analysis.Meters
 import java.nio.ByteBuffer
@@ -17,7 +16,7 @@ import kotlin.math.roundToInt
  * Unsupported layouts and bit-perfect mode pass through untouched.
  */
 @UnstableApi
-class SpatiaAudioProcessor(private val engine: AudioEngine) : BaseAudioProcessor() {
+class SpatiaAudioProcessor(private val engine: ChainHost) : BaseAudioProcessor() {
     private var chain: DspChain? = null
     private var meters: Meters? = null
     private var inFloat = FloatArray(0)
@@ -28,7 +27,7 @@ class SpatiaAudioProcessor(private val engine: AudioEngine) : BaseAudioProcessor
         if (enc != C.ENCODING_PCM_16BIT && enc != C.ENCODING_PCM_FLOAT) return AudioProcessor.AudioFormat.NOT_SET
         if (inputAudioFormat.channelCount !in DspChain.SUPPORTED_CHANNELS) return AudioProcessor.AudioFormat.NOT_SET
         if (inputAudioFormat.sampleRate !in 8000..384000) return AudioProcessor.AudioFormat.NOT_SET
-        if (engine.config.value.app.bitPerfectUsb) return AudioProcessor.AudioFormat.NOT_SET
+        if (engine.bitPerfect) return AudioProcessor.AudioFormat.NOT_SET
         return AudioProcessor.AudioFormat(inputAudioFormat.sampleRate, 2, C.ENCODING_PCM_16BIT)
     }
 
