@@ -59,9 +59,20 @@ public sealed partial class Shell : UserControl, IDisposable
                 ShowError(ex.Message);
             }
         };
-        _nav.SelectedItem = _nav.MenuItems[0];
+        // Show the first page right away, so the window is never empty. Selecting a NavigationView item only works
+        // once the control is in the visual tree (doing it here threw 0x80070490 "Element not found"), so the
+        // selection highlight is applied on Loaded.
+        _nav.Content = _pages["player"]();
+        Loaded += SelectFirstPageOnce;
         _app.VolumeWarning += ShowVolumeWarning;
         AppLog.Info("startup", "user interface ready");
+    }
+
+    private void SelectFirstPageOnce(object sender, RoutedEventArgs e)
+    {
+        Loaded -= SelectFirstPageOnce;
+        try { _nav.SelectedItem = _nav.MenuItems[0]; }
+        catch (Exception ex) { AppLog.Error("selecting first page", ex); }
     }
 
     private static bool EngineAvailable(out string reason)
