@@ -9,3 +9,10 @@ captures/
 *.keystore
 *.apk
 *.aab
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
+TestResults/

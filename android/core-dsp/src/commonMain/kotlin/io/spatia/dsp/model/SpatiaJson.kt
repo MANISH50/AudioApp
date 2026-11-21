@@ -10,4 +10,6 @@ val SpatiaJson: Json = Json {
     ignoreUnknownKeys = true
     coerceInputValues = true
     encodeDefaults = true
+    // NaN/Infinity from another runtime must reach validated(), which replaces them with safe defaults.
+    allowSpecialFloatingPointValues = true
 }
