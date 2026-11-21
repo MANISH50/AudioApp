@@ -78,7 +78,9 @@ jobs:
       - name: Check package contents and icon
         shell: pwsh
         run: |
-          foreach ($f in "Spatia.exe", "spatia_dsp.dll", "Spatia.ico", "Microsoft.WindowsAppRuntime.dll") {
+          # Spatia.pri holds the app's compiled XAML and the merged default control styles; without it the app
+          # crashes as soon as it shows a control.
+          foreach ($f in "Spatia.exe", "Spatia.pri", "spatia_dsp.dll", "Spatia.ico", "Microsoft.WindowsAppRuntime.dll") {
             if (-not (Test-Path "out/Spatia/$f")) { throw "Missing $f in package" }
           }
           Add-Type -AssemblyName System.Drawing

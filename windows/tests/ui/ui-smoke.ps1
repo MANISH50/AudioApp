@@ -85,7 +85,7 @@ if (Test-Path $logFile) { Remove-Item $logFile -Force }
 $inst = Start-Process $Installer -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER', "/LOG=$(Join-Path $OutDir 'install.log')" -Wait -PassThru
 if ($inst.ExitCode -ne 0) { Fail "Installer exit code $($inst.ExitCode)" }
 $exe = Join-Path $env:LOCALAPPDATA 'Programs\Spatia\Spatia.exe'
-foreach ($f in 'Spatia.exe', 'spatia_dsp.dll', 'Spatia.ico', 'unins000.exe') {
+foreach ($f in 'Spatia.exe', 'Spatia.pri', 'spatia_dsp.dll', 'Spatia.ico', 'unins000.exe') {
     if (-not (Test-Path (Join-Path (Split-Path $exe) $f))) { Fail "Installed app is missing $f" }
 }
 $startMenu = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Spatia.lnk'

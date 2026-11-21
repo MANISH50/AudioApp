@@ -8,6 +8,9 @@
     <UseWinUI>true</UseWinUI>
     <!-- Unpackaged, self-contained desktop app: runs from a folder, no Store or installer needed. -->
     <WindowsPackageType>None</WindowsPackageType>
+    <!-- Required even when unpackaged: generates Spatia.pri, which merges the framework's default control styles
+         (without it WinUI fails fast in GetDefaultStyleByTypeName as soon as a control is shown). -->
+    <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
