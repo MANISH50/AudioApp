@@ -154,6 +154,27 @@ public sealed class LinkServerTests : IDisposable
     }
 
     [Fact]
+    public async Task Control_reaches_the_phone_and_its_state_comes_back()
+    {
+        var requests = new List<PairingRequest>();
+        _server.PairingRequested += requests.Add;
+        var state = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _server.ControlStateChanged += v => state.TrySetResult(v);
+        using var phoneId = Identity.Load(Identity.Create("CN=Phone3"));
+        var (phone, _) = await Pair(phoneId, allow: true, requests);
+
+        await phone.SendAsync(Wire.ControlState, Messages.Flag(true));
+        Assert.True(await state.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+
+        _server.SendControl(Wire.ControlGlobal, [Messages.GlobalHome]);
+        var f = await phone.ReadAsync();
+        Assert.Equal(Wire.ControlGlobal, f.Type);
+        Assert.Equal(new[] { Messages.GlobalHome }, f.Payload);
+        Assert.Throws<ArgumentOutOfRangeException>(() => _server.SendControl(Wire.VideoFrame, []));
+        await phone.DisposeAsync();
+    }
+
+    [Fact]
     public async Task Garbage_instead_of_tls_is_dropped()
     {
         using var tcp = new TcpClient();

@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Switch
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -59,6 +63,36 @@ fun CastScreen(vm: MainViewModel, onStartCast: () -> Unit, modifier: Modifier) {
                 }
             }
         }
+        ControlSection(vm, casting)
         Text(stringResource(R.string.cast_help))
+    }
+}
+
+@Composable
+private fun ControlSection(vm: MainViewModel, casting: Boolean) {
+    val allow by vm.allowControl.collectAsStateWithLifecycle()
+    val service by vm.controlService.collectAsStateWithLifecycle()
+    val whole by vm.wholeScreen.collectAsStateWithLifecycle()
+    val ready by vm.controlReady.collectAsStateWithLifecycle()
+    val ctx = LocalContext.current
+    Section(stringResource(R.string.section_control)) {
+        Text(stringResource(R.string.control_disclosure))
+        Row(
+            Modifier.fillMaxWidth().toggleable(allow, role = Role.Switch) { vm.setAllowControl(it) },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(stringResource(R.string.control_switch), Modifier.weight(1f))
+            Switch(allow, null)
+        }
+        Text(stringResource(if (service) R.string.control_service_on else R.string.control_service_off))
+        if (!service) {
+            OutlinedButton({
+                runCatching { ctx.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            }) { Text(stringResource(R.string.control_open_settings)) }
+            Text(stringResource(R.string.control_restricted_hint), style = MaterialTheme.typography.bodySmall)
+        }
+        if (casting && !whole) Text(stringResource(R.string.control_single_app), color = MaterialTheme.colorScheme.error)
+        if (ready) Text(stringResource(R.string.control_ready), color = MaterialTheme.colorScheme.primary)
     }
 }

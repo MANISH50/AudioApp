@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import io.screenlink.app.ScreenLinkApp
 import io.screenlink.app.cast.Quality
 import io.screenlink.app.cast.ScreenCastService
+import io.screenlink.app.control.ControlService
 import io.screenlink.app.data.PairedLaptop
 import io.screenlink.app.keyboard.TextDiff
 import io.screenlink.app.net.Discovery
@@ -29,6 +30,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val paired: StateFlow<List<PairedLaptop>> = app.pairings.laptops.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val casting: StateFlow<Boolean> = ScreenCastService.casting
     val castError: StateFlow<Boolean> = ScreenCastService.lastError
+    val allowControl: StateFlow<Boolean> = app.settings.allowControl.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val controlService: StateFlow<Boolean> = ControlService.enabled
+    val wholeScreen: StateFlow<Boolean> = ScreenCastService.wholeScreen
+    val controlReady: StateFlow<Boolean> = app.control.ready
 
     private val _found = MutableStateFlow<List<DiscoveredLaptop>>(emptyList())
     val found: StateFlow<List<DiscoveredLaptop>> = _found.asStateFlow()
@@ -76,6 +81,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun confirmCode(match: Boolean) = app.link.confirmCode(match)
 
     fun forget(p: PairedLaptop) = viewModelScope.launch { app.pairings.remove(p.fingerprintHex) }
+
+    fun setAllowControl(on: Boolean) = viewModelScope.launch { app.settings.setAllowControl(on) }
 
     fun setQuality(q: Quality) { _quality.value = q }
     fun clearCastError() = ScreenCastService.clearError()

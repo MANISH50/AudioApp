@@ -74,6 +74,15 @@ public sealed class LinkServer : IDisposable
     public event Action<bool>? CastStateChanged;
     public event Action<VideoConfigMessage>? VideoConfigReceived;
     public event Action<VideoFrameMessage>? VideoFrameReceived;
+    /// <summary>The phone says whether the laptop may control it right now (its switch, accessibility service, casting).</summary>
+    public event Action<bool>? ControlStateChanged;
+
+    /// <summary>Sends a CONTROL_* message to the connected phone (ignored if none). The phone decides whether to act on it.</summary>
+    public void SendControl(byte type, ReadOnlySpan<byte> payload)
+    {
+        if (type is < Wire.ControlPointer or > Wire.ControlKey) throw new ArgumentOutOfRangeException(nameof(type));
+        Active()?.Send(type, payload);
+    }
 
     public string? ConnectedPhone { get { lock (_gate) return _active?.Name; } }
 
@@ -255,6 +264,7 @@ public sealed class LinkServer : IDisposable
                 session.Close(sendBye: false);
                 if (wasActive)
                 {
+                    ControlStateChanged?.Invoke(false);
                     if (session.Casting) CastStateChanged?.Invoke(false);
                     PhoneDisconnected?.Invoke();
                     AppLog.Info("session", "phone disconnected");
@@ -301,6 +311,7 @@ public sealed class LinkServer : IDisposable
                     var k = Messages.ParseKeyPress(f.Payload);
                     if (_settings.AllowTyping) _keys.Send(KeyMapping.Press(k.VirtualKey, k.Modifiers));
                     break;
+                case Wire.ControlState: ControlStateChanged?.Invoke(Messages.ParseFlag(f.Payload)); break;
                 case Wire.Ping: s.Send(Wire.Pong, f.Payload.Length <= 8 ? f.Payload : f.Payload[..8]); break;
                 case Wire.Bye: return;
                 default: break; // PONG and unknown types (forward compatibility)

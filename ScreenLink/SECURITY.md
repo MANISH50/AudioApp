@@ -28,6 +28,22 @@ ScreenLink sends your phone's screen and keystrokes over your local network, so 
   no key is left held down if the connection drops.
 - ScreenLink runs as a normal user (`asInvoker`); it can't type into elevated (administrator) windows.
 
+## Laptop controlling the phone (0.2)
+
+- **Off by default.** It needs two deliberate steps on the phone: switching on the *ScreenLink control* accessibility
+  service in Android settings, and *Let the laptop control this phone* in the app (shown with a full disclosure of what
+  it allows).
+- Control messages are acted on only while all of these hold: connected to the **paired** (pinned) laptop, casting the
+  **entire** screen (not a single app), the in-app switch on, and the service on. Otherwise they are dropped. The phone
+  tells the laptop whether control is available; the casting notification says when the laptop can control the phone.
+- What the laptop can do: taps, long presses, swipes, scrolls, Back/Home/Recents/Notifications, and inserting text into
+  the focused text field. It can't read anything back: no content leaves the phone except the cast picture and a 1-byte
+  "ready" flag. The service receives no accessibility events, and it never edits password fields.
+- Messages are strictly parsed (fixed sizes, valid codes, UTF-8 ≤ 1 KiB); gestures are bounded (≤ 400 points, ≤ 10 s).
+- Threat model: a paired laptop (or someone at it) can operate the phone while you cast with control on, just as if
+  they held it. Don't enable control for laptops you don't trust; turn the switch off or *Forget* the laptop to revoke.
+- Google Play requires an accessibility declaration for this; sideloaded installs are unaffected.
+
 ## Robustness
 
 - Every message has a length limit (4 MiB frame, 1 KiB text, 128-byte names); malformed input closes the connection.
@@ -37,6 +53,7 @@ ScreenLink sends your phone's screen and keystrokes over your local network, so 
 
 ## Android standards
 
+- Accessibility service: `BIND_ACCESSIBILITY_SERVICE`-protected (only the system can bind it), user-enabled only.
 - Permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PROJECTION`,
   `POST_NOTIFICATIONS`. No storage, location, microphone or camera; the manifest actively removes them if a library tries
   to add them.

@@ -23,6 +23,11 @@ import androidx.core.content.IntentCompat
 import io.screenlink.app.MainActivity
 import io.screenlink.app.R
 import io.screenlink.app.ScreenLinkApp
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +42,7 @@ class ScreenCastService : Service() {
     private var projection: MediaProjection? = null
     private var caster: ScreenCaster? = null
     private var displayListener: DisplayManager.DisplayListener? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -70,7 +76,13 @@ class ScreenCastService : Service() {
         // 3) Register the stop callback before creating the virtual display (required on Android 14+).
         proj.registerCallback(object : MediaProjection.Callback() {
             override fun onStop() { main.post { stopCasting() } }
-            override fun onCapturedContentResize(width: Int, height: Int) { caster?.onScreenChanged() }
+            override fun onCapturedContentResize(width: Int, height: Int) {
+                // Android 14+ can share a single app instead of the whole screen; taps could then land in the wrong
+                // place, so laptop control is only allowed while the whole screen is shared.
+                val (sw, sh) = screenSize()
+                _wholeScreen.value = sameSize(width, height, sw, sh)
+                caster?.onScreenChanged()
+            }
         }, main)
 
         val app = application as ScreenLinkApp
@@ -87,6 +99,12 @@ class ScreenCastService : Service() {
         getSystemService(DisplayManager::class.java).registerDisplayListener(listener, main)
         displayListener = listener
         c.start()
+        // Keep the notification honest about whether the laptop can also control the phone.
+        scope.launch {
+            app.control.ready.collect { ready ->
+                if (_casting.value) getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(ready))
+            }
+        }
         app.link.sendCastState(true)
         _casting.value = true
         return START_NOT_STICKY
@@ -121,16 +139,18 @@ class ScreenCastService : Service() {
         projection = null
         if (_casting.value) app.link.sendCastState(false)
         _casting.value = false
+        _wholeScreen.value = true
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
     override fun onDestroy() {
+        scope.cancel()
         if (caster != null) stopCasting()
         super.onDestroy()
     }
 
-    private fun notification(): Notification {
+    private fun notification(controlled: Boolean = false): Notification {
         val nm = getSystemService(NotificationManager::class.java)
         if (nm.getNotificationChannel(CHANNEL) == null) {
             nm.createNotificationChannel(
@@ -148,7 +168,7 @@ class ScreenCastService : Service() {
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_cast)
             .setContentTitle(getString(R.string.notif_title))
-            .setContentText(getString(R.string.notif_text))
+            .setContentText(getString(if (controlled) R.string.notif_text_control else R.string.notif_text))
             .setContentIntent(open)
             .setOngoing(true)
             .addAction(Notification.Action.Builder(null, getString(R.string.cast_stop), stop).build())
@@ -166,6 +186,16 @@ class ScreenCastService : Service() {
 
         private val _casting = MutableStateFlow(false)
         val casting: StateFlow<Boolean> = _casting.asStateFlow()
+        private val _wholeScreen = MutableStateFlow(true)
+        /** False while Android 14+ is sharing a single app rather than the entire screen. */
+        val wholeScreen: StateFlow<Boolean> = _wholeScreen.asStateFlow()
+
+        /** Same size in either orientation, within 3%. */
+        fun sameSize(w: Int, h: Int, sw: Int, sh: Int): Boolean {
+            fun close(a: Int, b: Int) = b > 0 && kotlin.math.abs(a - b) <= b * 0.03
+            return (close(w, sw) && close(h, sh)) || (close(w, sh) && close(h, sw))
+        }
+
         private val _lastError = MutableStateFlow(false)
         val lastError: StateFlow<Boolean> = _lastError.asStateFlow()
         fun clearError() { _lastError.value = false }

@@ -53,6 +53,9 @@ class LinkClient(private val pairings: PairingStore, private val deviceName: () 
     /** Called on the reader thread when the laptop asks for a keyframe (new viewer, decoder error). */
     @Volatile var onKeyframeRequest: (() -> Unit)? = null
 
+    /** Called on the reader thread with CONTROL_* messages (laptop controlling the phone). See RemoteControl. */
+    @Volatile var onControl: ((Int, ByteArray) -> Unit)? = null
+
     private val lock = Any()
     private var session: Session? = null
 
@@ -100,6 +103,10 @@ class LinkClient(private val pairings: PairingStore, private val deviceName: () 
 
     fun sendCastState(casting: Boolean) {
         current()?.queue?.offerControl(Protocol.CAST_STATE, Messages.flag(casting))
+    }
+
+    fun sendControlState(ready: Boolean) {
+        current()?.queue?.offerControl(Protocol.CONTROL_STATE, Messages.flag(ready))
     }
 
     fun offerVideoConfig(payload: ByteArray): Boolean = current()?.queue?.offerVideoConfig(payload) ?: false
@@ -214,6 +221,7 @@ class LinkClient(private val pairings: PairingStore, private val deviceName: () 
                         Protocol.PING -> q.offerControl(Protocol.PONG, f.payload.copyOf(minOf(8, f.payload.size)))
                         Protocol.PONG -> Unit
                         Protocol.REQUEST_KEYFRAME -> if (connected) onKeyframeRequest?.invoke()
+                        in Protocol.CONTROL_POINTER..Protocol.CONTROL_KEY -> if (connected) onControl?.invoke(f.type, f.payload)
                         Protocol.BYE -> return if (connected) Outcome.Fatal(LinkFailure.LAPTOP_CLOSED) else Outcome.Fatal(LinkFailure.REJECTED)
                         else -> Unit // unknown types are ignored, for forward compatibility
                     }

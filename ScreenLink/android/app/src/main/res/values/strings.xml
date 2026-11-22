@@ -70,6 +70,20 @@
     <string name="sc_select_all">Select all</string>
     <string name="sc_switch">Switch app</string>
 
+    <string name="notif_text_control">Your screen is visible on the laptop, and the laptop can control this phone.</string>
+
+    <string name="section_control">Control from laptop</string>
+    <string name="control_switch">Let the laptop control this phone</string>
+    <string name="control_disclosure">When this is on and you are casting, the paired laptop can tap, swipe, type into text fields and press Back, Home and Recents on this phone, like you would. It works only while casting to your paired laptop, and you can turn it off here at any time. ScreenLink uses Android\'s accessibility service for this; it reads nothing except the text field you are typing into, and sends nothing back.</string>
+    <string name="control_service_on">Accessibility service: on</string>
+    <string name="control_service_off">Accessibility service: off. Turn on \"ScreenLink control\" in accessibility settings.</string>
+    <string name="control_open_settings">Open accessibility settings</string>
+    <string name="control_restricted_hint">If Android says the setting is restricted (Android 13+, apps installed from a file): open Settings → Apps → ScreenLink → ⋮ menu → Allow restricted settings, then try again.</string>
+    <string name="control_single_app">You are sharing a single app. Choose \"Entire screen\" when you start casting to control the phone.</string>
+    <string name="control_ready">The laptop can control this phone now. Click on the phone screen in the laptop window.</string>
+    <string name="control_service_label">ScreenLink control</string>
+    <string name="control_service_description">Lets your paired laptop tap, swipe, type into the focused text field and press Back, Home and Recents on this phone, only while you are casting to it with ScreenLink and have allowed control in the app. It reads no screen content except the text field you are typing into.</string>
+
     <string name="notif_channel">Screen casting</string>
     <string name="notif_title">ScreenLink is casting your screen</string>
     <string name="notif_text">Everything on your screen is visible on the laptop.</string>

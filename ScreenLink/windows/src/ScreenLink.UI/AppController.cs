@@ -34,6 +34,7 @@ public sealed class AppController : IDisposable
     public event Action<string>? PhoneConnected;
     public event Action? PhoneDisconnected;
     public event Action<bool>? CastStateChanged;
+    public event Action<bool>? ControlStateChanged;
 
     public AppController(DispatcherQueue dq)
     {
@@ -49,6 +50,7 @@ public sealed class AppController : IDisposable
             Server.PhoneConnected += n => _dq.TryEnqueue(() => PhoneConnected?.Invoke(n));
             Server.PhoneDisconnected += () => _dq.TryEnqueue(() => PhoneDisconnected?.Invoke());
             Server.CastStateChanged += c => _dq.TryEnqueue(() => CastStateChanged?.Invoke(c));
+            Server.ControlStateChanged += c => _dq.TryEnqueue(() => ControlStateChanged?.Invoke(c));
             Server.Start();
         }
         catch (Exception e) when (e is IOException or SocketException or UnauthorizedAccessException

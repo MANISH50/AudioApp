@@ -33,6 +33,12 @@ object Protocol {
     const val CAST_STATE: Int = 0x13
     const val KEY_TEXT: Int = 0x20
     const val KEY_PRESS: Int = 0x21
+    const val CONTROL_POINTER: Int = 0x40
+    const val CONTROL_SCROLL: Int = 0x41
+    const val CONTROL_GLOBAL: Int = 0x42
+    const val CONTROL_TEXT: Int = 0x43
+    const val CONTROL_KEY: Int = 0x44
+    const val CONTROL_STATE: Int = 0x45
     const val PING: Int = 0x30
     const val PONG: Int = 0x31
     const val BYE: Int = 0x3F
@@ -125,6 +131,60 @@ object Messages {
     /** A key tap: [key] is a Windows virtual-key code (see [Keys]), [modifiers] a MOD_* bitmask held during the tap. */
     fun keyPress(key: Int, modifiers: Int): ByteArray =
         ByteBuffer.allocate(3).putShort(key.toShort()).put(modifiers.toByte()).array()
+
+    /** Laptop → phone: a pointer event; x/y are 0..65535 across the video picture. */
+    class Pointer(val action: Int, val x: Int, val y: Int)
+    const val POINTER_DOWN = 0
+    const val POINTER_MOVE = 1
+    const val POINTER_UP = 2
+    const val POINTER_CANCEL = 3
+
+    fun pointer(action: Int, x: Int, y: Int): ByteArray =
+        ByteBuffer.allocate(5).put(action.toByte()).putShort(x.toShort()).putShort(y.toShort()).array()
+
+    fun parsePointer(p: ByteArray): Pointer {
+        if (p.size != 5) throw ProtocolException("bad CONTROL_POINTER")
+        val b = ByteBuffer.wrap(p)
+        val action = b.get().toInt() and 0xFF
+        if (action > POINTER_CANCEL) throw ProtocolException("bad pointer action")
+        return Pointer(action, b.short.toInt() and 0xFFFF, b.short.toInt() and 0xFFFF)
+    }
+
+    class Scroll(val x: Int, val y: Int, val delta: Int)
+
+    fun scroll(x: Int, y: Int, delta: Int): ByteArray =
+        ByteBuffer.allocate(6).putShort(x.toShort()).putShort(y.toShort()).putShort(delta.toShort()).array()
+
+    fun parseScroll(p: ByteArray): Scroll {
+        if (p.size != 6) throw ProtocolException("bad CONTROL_SCROLL")
+        val b = ByteBuffer.wrap(p)
+        return Scroll(b.short.toInt() and 0xFFFF, b.short.toInt() and 0xFFFF, b.short.toInt())
+    }
+
+    const val GLOBAL_BACK = 1
+    const val GLOBAL_HOME = 2
+    const val GLOBAL_RECENTS = 3
+    const val GLOBAL_NOTIFICATIONS = 4
+    const val KEY_BACKSPACE = 1
+    const val KEY_ENTER = 2
+
+    /** A single-byte code (CONTROL_GLOBAL, CONTROL_KEY). */
+    fun parseCode(p: ByteArray, max: Int): Int {
+        if (p.size != 1) throw ProtocolException("bad code")
+        val v = p[0].toInt() and 0xFF
+        if (v !in 1..max) throw ProtocolException("unknown code")
+        return v
+    }
+
+    fun parseText(p: ByteArray): String {
+        if (p.size > Protocol.MAX_TEXT_BYTES) throw ProtocolException("text too long")
+        val dec = StandardCharsets.UTF_8.newDecoder()
+        return try {
+            dec.decode(ByteBuffer.wrap(p)).toString()
+        } catch (_: java.nio.charset.CharacterCodingException) {
+            throw ProtocolException("invalid UTF-8")
+        }
+    }
 
     fun ping(nanos: Long): ByteArray = ByteBuffer.allocate(8).putLong(nanos).array()
 

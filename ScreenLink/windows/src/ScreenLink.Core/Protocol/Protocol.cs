@@ -25,6 +25,12 @@ public static class Wire
     public const byte CastState = 0x13;
     public const byte KeyText = 0x20;
     public const byte KeyPress = 0x21;
+    public const byte ControlPointer = 0x40;
+    public const byte ControlScroll = 0x41;
+    public const byte ControlGlobal = 0x42;
+    public const byte ControlText = 0x43;
+    public const byte ControlKey = 0x44;
+    public const byte ControlState = 0x45;
     public const byte Ping = 0x30;
     public const byte Pong = 0x31;
     public const byte Bye = 0x3F;
@@ -139,6 +145,35 @@ public static class Messages
         if (p.Length != 3) throw new ProtocolException("bad KEY_PRESS");
         var vk = BinaryPrimitives.ReadUInt16BigEndian(p);
         return new KeyPressMessage(vk, p[2]);
+    }
+
+    public const byte PointerDown = 0, PointerMove = 1, PointerUp = 2, PointerCancel = 3;
+    public const byte GlobalBack = 1, GlobalHome = 2, GlobalRecents = 3, GlobalNotifications = 4;
+    public const byte KeyBackspace = 1, KeyEnter = 2;
+
+    /// <summary>Laptop → phone pointer event; x/y are 0..65535 across the video picture.</summary>
+    public static byte[] PointerEvent(byte action, ushort x, ushort y)
+    {
+        var b = new byte[5];
+        b[0] = action;
+        BinaryPrimitives.WriteUInt16BigEndian(b.AsSpan(1), x);
+        BinaryPrimitives.WriteUInt16BigEndian(b.AsSpan(3), y);
+        return b;
+    }
+
+    public static byte[] Scroll(ushort x, ushort y, short delta)
+    {
+        var b = new byte[6];
+        BinaryPrimitives.WriteUInt16BigEndian(b, x);
+        BinaryPrimitives.WriteUInt16BigEndian(b.AsSpan(2), y);
+        BinaryPrimitives.WriteInt16BigEndian(b.AsSpan(4), delta);
+        return b;
+    }
+
+    public static byte[] Text(string text)
+    {
+        var bytes = StrictUtf8.GetBytes(TruncateUtf8(text ?? "", Wire.MaxTextBytes));
+        return bytes;
     }
 
     private static string Decode(ReadOnlySpan<byte> bytes)

@@ -48,5 +48,21 @@
             android:name=".cast.ScreenCastService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
+
+        <!-- Lets the paired laptop tap, swipe and type on this phone while casting. Off until the user enables it in
+             Settings > Accessibility AND switches on "Let the laptop control this phone" in ScreenLink.
+             Exported only to the system (BIND_ACCESSIBILITY_SERVICE). -->
+        <service
+            android:name=".control.ControlService"
+            android:exported="true"
+            android:label="@string/control_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/control_service" />
+        </service>
     </application>
 </manifest>

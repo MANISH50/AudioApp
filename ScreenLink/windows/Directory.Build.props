@@ -11,7 +11,7 @@
     <!-- Pinned, locked dependency graph (packages.lock.json); CI restores in locked mode. -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Company>ScreenLink</Company>
     <Product>ScreenLink</Product>
     <!-- Lets the Windows-specific libraries compile on Linux CI as well. -->

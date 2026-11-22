@@ -1,10 +1,10 @@
 ; ScreenLink for Windows installer (Inno Setup 6).
 ; Per-user install: no administrator rights, no drivers or services. The optional firewall rule (private networks only)
 ; is added later from inside the app, with one UAC prompt, only if the user asks for it.
-; Built by CI:  ISCC.exe /DAppVersion=0.1.0 /DSourceDir=<dotnet publish folder> ScreenLink.iss
+; Built by CI:  ISCC.exe /DAppVersion=0.2.0 /DSourceDir=<dotnet publish folder> ScreenLink.iss
 
 #ifndef AppVersion
-  #define AppVersion "0.1.0"
+  #define AppVersion "0.2.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\..\..\out\ScreenLink"

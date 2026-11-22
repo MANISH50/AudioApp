@@ -40,6 +40,20 @@ public sealed partial class Shell : UserControl, IDisposable
     private string? _phone;
     private bool _casting;
     private bool _fullScreen;
+    private bool _controlReady;
+    private bool _videoFocused;
+    private bool _dragging;
+    private int _videoW, _videoH;
+    private char _highSurrogate;
+    private readonly System.Diagnostics.Stopwatch _moveClock = System.Diagnostics.Stopwatch.StartNew();
+    private readonly Grid _input = new() { Background = new SolidColorBrush(Colors.Transparent) };
+    private readonly StackPanel _toolbar = new() { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(12), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+    private readonly TextBlock _controlHint = new()
+    {
+        HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(16),
+        TextWrapping = TextWrapping.WrapWholeWords, TextAlignment = TextAlignment.Center, MaxWidth = 520,
+        Foreground = new SolidColorBrush(Colors.White), IsHitTestVisible = false,
+    };
 
     public Shell(Window window)
     {
@@ -80,9 +94,18 @@ public sealed partial class Shell : UserControl, IDisposable
         fullScreen.VerticalAlignment = VerticalAlignment.Top;
         fullScreen.Margin = new Thickness(12);
         var viewer = new Grid { Background = new SolidColorBrush(Colors.Black) };
+        _overlay.IsHitTestVisible = false;
+        AutomationProperties.SetName(_input, Strings.ControlInput);
+        _toolbar.Children.Add(Kit.Button(Strings.Back, () => SendGlobal(Messages.GlobalBack)));
+        _toolbar.Children.Add(Kit.Button(Strings.Home, () => SendGlobal(Messages.GlobalHome)));
+        _toolbar.Children.Add(Kit.Button(Strings.Recents, () => SendGlobal(Messages.GlobalRecents)));
         viewer.Children.Add(video);
+        viewer.Children.Add(_input);
         viewer.Children.Add(_overlay);
+        viewer.Children.Add(_controlHint);
+        viewer.Children.Add(_toolbar);
         viewer.Children.Add(fullScreen);
+        HookControlInput();
 
         var root = new Grid();
         root.ColumnDefinitions.Add(_panelColumn);
@@ -102,15 +125,16 @@ public sealed partial class Shell : UserControl, IDisposable
         if (_app.Server is { } server)
         {
             _player = new H264Player(video, DispatcherQueue, server.RequestKeyframe);
-            _player.VideoStarted += (_, _) => Refresh();
+            _player.VideoStarted += (w, h) => { _videoW = w; _videoH = h; Refresh(); };
             server.VideoConfigReceived += _player.OnConfig;
             server.VideoFrameReceived += _player.OnFrame;
         }
         _app.PairingRequested += ShowPairing;
         _app.PairingEnded += r => { if (r == _pairing) { _pairingDialog?.Hide(); _pairing = null; } };
         _app.PhoneConnected += n => { _phone = n; Refresh(); };
-        _app.PhoneDisconnected += () => { _phone = null; _casting = false; _player?.Stop(); Refresh(); };
-        _app.CastStateChanged += c => { _casting = c; if (!c) _player?.Stop(); Refresh(); };
+        _app.PhoneDisconnected += () => { _phone = null; _casting = false; _controlReady = false; _player?.Stop(); Refresh(); };
+        _app.CastStateChanged += c => { _casting = c; if (!c) { _player?.Stop(); _videoW = _videoH = 0; } Refresh(); };
+        _app.ControlStateChanged += c => { _controlReady = c; Refresh(); };
         _app.Paired.Changed += () => DispatcherQueue.TryEnqueue(RefreshPaired);
 
         if (_app.StartError is { } err) ShowInfo(InfoBarSeverity.Error, Strings.StartFailed + " " + err);
@@ -127,6 +151,108 @@ public sealed partial class Shell : UserControl, IDisposable
         _disconnect.IsEnabled = _phone is not null;
         _overlay.Text = _casting ? "" : _phone is null ? Strings.OverlayWaiting : Strings.OverlayNotCasting;
         _overlay.Visibility = _casting ? Visibility.Collapsed : Visibility.Visible;
+        var canControl = _casting && _controlReady;
+        _toolbar.Visibility = canControl ? Visibility.Visible : Visibility.Collapsed;
+        _controlHint.Text = Strings.ControlOffHint;
+        _controlHint.Visibility = _casting && !_controlReady ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private bool ControlActive => _casting && _controlReady && _videoW > 0 && _app.Server is not null;
+
+    private void SendGlobal(byte code)
+    {
+        if (ControlActive) _app.Server!.SendControl(Wire.ControlGlobal, [code]);
+    }
+
+    private (ushort X, ushort Y)? MapPoint(Windows.Foundation.Point p, bool clamp) =>
+        Core.Control.PointerMapper.Map(p.X, p.Y, _input.ActualWidth, _input.ActualHeight, _videoW, _videoH, clamp);
+
+    private void SendPointer(byte action, (ushort X, ushort Y) at) =>
+        _app.Server?.SendControl(Wire.ControlPointer, Messages.PointerEvent(action, at.X, at.Y));
+
+    /// <summary>
+    /// Mouse and keyboard on the phone picture → the phone (when the phone allows control): click = tap, drag = swipe,
+    /// wheel = scroll, right-click = Back; typing goes into the phone's focused text field once the picture was clicked.
+    /// </summary>
+    private void HookControlInput()
+    {
+        IsTabStop = true;
+        _input.PointerPressed += (_, e) =>
+        {
+            _videoFocused = true;
+            Focus(FocusState.Pointer);
+            if (!ControlActive) return;
+            var pt = e.GetCurrentPoint(_input);
+            if (pt.Properties.IsRightButtonPressed) { SendGlobal(Messages.GlobalBack); e.Handled = true; return; }
+            if (!pt.Properties.IsLeftButtonPressed || MapPoint(pt.Position, false) is not { } at) return;
+            _dragging = _input.CapturePointer(e.Pointer);
+            SendPointer(Messages.PointerDown, at);
+            _moveClock.Restart();
+            e.Handled = true;
+        };
+        _input.PointerMoved += (_, e) =>
+        {
+            if (!_dragging || _moveClock.ElapsedMilliseconds < 16) return; // ~60 updates per second is plenty
+            _moveClock.Restart();
+            if (MapPoint(e.GetCurrentPoint(_input).Position, true) is { } at) SendPointer(Messages.PointerMove, at);
+        };
+        _input.PointerReleased += (_, e) =>
+        {
+            if (!_dragging) return;
+            _dragging = false;
+            if (MapPoint(e.GetCurrentPoint(_input).Position, true) is { } at) SendPointer(Messages.PointerUp, at);
+            _input.ReleasePointerCapture(e.Pointer);
+            e.Handled = true;
+        };
+        _input.PointerCaptureLost += (_, _) =>
+        {
+            if (!_dragging) return;
+            _dragging = false;
+            SendPointer(Messages.PointerCancel, (0, 0));
+        };
+        _input.PointerWheelChanged += (_, e) =>
+        {
+            if (!ControlActive) return;
+            var pt = e.GetCurrentPoint(_input);
+            if (MapPoint(pt.Position, false) is not { } at) return;
+            var delta = (short)Math.Clamp(pt.Properties.MouseWheelDelta, short.MinValue, short.MaxValue);
+            _app.Server!.SendControl(Wire.ControlScroll, Messages.Scroll(at.X, at.Y, delta));
+            e.Handled = true;
+        };
+        _panel.AddHandler(PointerPressedEvent, new PointerEventHandler((_, _) => _videoFocused = false), true);
+
+        CharacterReceived += (_, e) =>
+        {
+            if (!_videoFocused || !ControlActive) return;
+            var c = e.Character;
+            if (char.IsHighSurrogate(c)) { _highSurrogate = c; return; }
+            string text;
+            if (char.IsLowSurrogate(c))
+            {
+                if (_highSurrogate == '\0') return;
+                text = new string([_highSurrogate, c]);
+                _highSurrogate = '\0';
+            }
+            else
+            {
+                _highSurrogate = '\0';
+                if (char.IsControl(c)) return; // Backspace/Enter come through KeyDown
+                text = c.ToString();
+            }
+            _app.Server!.SendControl(Wire.ControlText, Messages.Text(text));
+            e.Handled = true;
+        };
+        KeyDown += (_, e) =>
+        {
+            if (!_videoFocused || !ControlActive) return;
+            byte? code = e.Key switch
+            {
+                VirtualKey.Back => Messages.KeyBackspace,
+                VirtualKey.Enter => Messages.KeyEnter,
+                _ => null,
+            };
+            if (code is { } k) { _app.Server!.SendControl(Wire.ControlKey, [k]); e.Handled = true; }
+        };
     }
 
     private void RefreshPaired()

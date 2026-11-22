@@ -40,5 +40,10 @@ public static class Strings
     public const string PairWarning = "A paired phone can show its screen here and type on this laptop. You can remove it any time.";
     public const string Allow = "Allow";
     public const string Deny = "Deny";
+    public const string Back = "Back";
+    public const string Home = "Home";
+    public const string Recents = "Recent apps";
+    public const string ControlInput = "Phone screen: click to tap, drag to swipe, wheel to scroll, right-click for Back, type to enter text";
+    public const string ControlOffHint = "To control the phone from here, open ScreenLink on the phone (Cast tab) and turn on \"Let the laptop control this phone\".";
     public const string StartFailed = "ScreenLink couldn't start its connection service.";
 }

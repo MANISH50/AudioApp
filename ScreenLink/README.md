@@ -37,7 +37,14 @@ New releases: Actions → *ScreenLink Windows* → *Run workflow*, enter a versi
 2. Open ScreenLink on the phone → **Laptop** tab → **Search**, tap your laptop → **Connect** (or type the address shown on the laptop).
 3. **First time only:** both screens show a 6-digit code. If they match, tap *Codes match* on the phone and click *Allow* on the laptop. From then on they connect without asking.
 4. **Cast** tab → *Start casting* → Android asks for permission → the phone's screen appears on the laptop. *F11* for full screen. Stop from the app or the notification.
-5. **Keyboard** tab → type with the phone's own keyboard; the text appears wherever the laptop's cursor is. Extra keys (Esc, Tab, arrows, F1–F12), modifiers (Ctrl, Alt, Shift, Win) and shortcuts (copy, paste, undo, switch app) are below the text box.
+5. **Control the phone from the laptop** (optional, 0.2+): on the phone, **Cast** tab → *Control from laptop* → tap
+   *Open accessibility settings* and switch on **ScreenLink control**, then turn on *Let the laptop control this phone*.
+   On Android 13+ a sideloaded app's accessibility switch can be greyed out ("restricted setting"): Settings → Apps →
+   ScreenLink → ⋮ → *Allow restricted settings* first. When casting the **entire screen**, in the laptop window:
+   click = tap, hold = long press, drag = swipe (performed when you release the button), mouse wheel = scroll,
+   right-click = Back, the **Back / Home / Recent apps** buttons, and after clicking a text box on the phone picture
+   you can type into it with the laptop keyboard (Backspace and Enter work; password fields are left alone).
+6. **Keyboard** tab → type with the phone's own keyboard; the text appears wherever the laptop's cursor is. Extra keys (Esc, Tab, arrows, F1–F12), modifiers (Ctrl, Alt, Shift, Win) and shortcuts (copy, paste, undo, switch app) are below the text box.
 
 ### Good to know
 
