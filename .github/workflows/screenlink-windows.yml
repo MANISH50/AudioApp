@@ -6,6 +6,11 @@ on:
   pull_request:
     paths: ["ScreenLink/windows/**", ".github/workflows/screenlink-windows.yml"]
   workflow_dispatch:
+    inputs:
+      release:
+        description: "Publish a GitHub Release with this version (e.g. 0.1.0). Leave empty to only build and test."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -165,7 +170,7 @@ jobs:
 
   android:
     name: Android APK for the release
-    if: startsWith(github.ref, 'refs/tags/screenlink-v')
+    if: startsWith(github.ref, 'refs/tags/screenlink-v') || inputs.release != ''
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -180,8 +185,8 @@ jobs:
         run: ./gradlew :app:testDebugUnitTest :app:assembleDebug
       - name: Name the APK after the release
         env:
-          TAG: ${{ github.ref_name }}
-        run: cp app/build/outputs/apk/debug/app-debug.apk "../../ScreenLink-${TAG#screenlink-v}.apk"
+          VERSION: ${{ inputs.release || github.ref_name }}
+        run: cp app/build/outputs/apk/debug/app-debug.apk "../../ScreenLink-${VERSION#screenlink-v}.apk"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ScreenLink-Android
@@ -190,7 +195,7 @@ jobs:
 
   release:
     name: Publish GitHub Release (tags screenlink-v*)
-    if: startsWith(github.ref, 'refs/tags/screenlink-v')
+    if: startsWith(github.ref, 'refs/tags/screenlink-v') || inputs.release != ''
     needs: [app, ui-test, android]
     runs-on: ubuntu-24.04
     permissions:
@@ -207,10 +212,12 @@ jobs:
       - name: Create release with the phone app, the installer and a portable zip
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          VERSION: ${{ inputs.release || github.ref_name }}
         run: |
           ls -la dist
-          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "ScreenLink ${TAG#screenlink-v}" \
+          TAG="screenlink-v${VERSION#screenlink-v}"
+          # A manual run creates the tag on the commit it built.
+          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "ScreenLink ${TAG#screenlink-v}" \
             --notes "Cast your Android phone's screen to your Windows laptop and type on the laptop from your phone.
 
           Phone (Android 10+): download ScreenLink-*.apk on the phone and open it (allow \"Install unknown apps\" when asked).

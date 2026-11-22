@@ -29,7 +29,7 @@ If it doesn't ask and the phone can't find the laptop, click *Allow ScreenLink o
 The APK on the Releases page is signed with a development key, which is fine for your own phones. To publish on Google
 Play, sign a release build with your own keystore (`./gradlew :app:assembleRelease`, then `apksigner`).
 
-New releases are made by pushing a tag `screenlink-v<version>`: CI builds, tests and attaches both files.
+New releases: Actions → *ScreenLink Windows* → *Run workflow*, enter a version (or push a tag `screenlink-v<version>`). CI builds, tests and attaches both files.
 
 ## Use
 
