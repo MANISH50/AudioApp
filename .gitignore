@@ -21,3 +21,6 @@ TestResults/
 Spatia-Setup-*.zip
 # Locally repackaged ScreenLink installers
 ScreenLink-Setup-*.zip
+
+# Locally downloaded CI builds
+downloads/

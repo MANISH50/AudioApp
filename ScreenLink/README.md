@@ -16,9 +16,20 @@ Show your Android phone's screen on your Windows laptop, and use the phone as a 
 
 ## Install
 
-**Laptop:** run `ScreenLink-Setup-<version>-x64.exe` (from the *ScreenLink Windows* CI run or a `screenlink-windows-v*` release). It installs for your user only, without administrator rights. The first time ScreenLink starts, Windows Firewall may ask whether to allow it: choose **Private networks**. If it doesn't ask and the phone can't find the laptop, click *Allow ScreenLink on private networks* in the app.
+Download both files from the [**Releases page**](https://github.com/MANISH50/AudioApp/releases) (latest `ScreenLink …` release):
 
-**Phone:** install the APK (from the *ScreenLink Android* CI run, or build it, see below). For distribution, sign a release build with your own key.
+| File | Where | How |
+|---|---|---|
+| `ScreenLink-<version>.apk` | Phone | Open the download on the phone; allow *Install unknown apps* for your browser/Files app when Android asks. |
+| `ScreenLink-Setup-<version>-x64.exe` | Laptop | Run it. Installs for your user only, no administrator rights. SmartScreen may warn because it isn't code-signed yet: *More info → Run anyway*. |
+
+The first time ScreenLink starts on the laptop, Windows Firewall may ask whether to allow it: choose **Private networks**.
+If it doesn't ask and the phone can't find the laptop, click *Allow ScreenLink on private networks* in the app.
+
+The APK on the Releases page is signed with a development key, which is fine for your own phones. To publish on Google
+Play, sign a release build with your own keystore (`./gradlew :app:assembleRelease`, then `apksigner`).
+
+New releases are made by pushing a tag `screenlink-v<version>`: CI builds, tests and attaches both files.
 
 ## Use
 
